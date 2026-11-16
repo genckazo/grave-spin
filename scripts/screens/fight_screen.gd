@@ -598,6 +598,8 @@ func _do_pull() -> void:
 	var roll: Dictionary = state.roll()
 	var grid: Array = roll["grid"]
 	var near_row := int(roll["near_miss"])
+	if bool(roll.get("jackpot", false)):
+		_jackpot()
 
 	Sfx.play("lever", 1.0, -2.0)
 	_animate_lever()
@@ -644,6 +646,7 @@ func _refresh_top_after_turn() -> void:
 	_display_enemy_hp(state.enemy_hp, false)
 	_display_coins(state.coins)
 	_display_block(state.block)
+	pity_label.text = "PITY %d/%d" % [state.pity, state.PITY_MAX] if state.pity > 0 else ""
 	_shown_enemy_block = state.enemy_block
 	_refresh_enemy_block()
 	_refresh_intent()
@@ -719,6 +722,17 @@ func _spin_ticks() -> void:
 			return
 		Sfx.tick(randf_range(0.35, 0.9))
 		await get_tree().create_timer(0.055).timeout
+
+
+func _jackpot() -> void:
+	if main.fast:
+		return
+	Sfx.play("bell", 1.0, 0.0)
+	Sfx.play("coin", 1.0, -4.0)
+	_flash(Color(0.95, 0.75, 0.25, 0.35), 0.6)
+	_shake(3.5, 0.5)
+	_coin_burst(Vector2(114, 278), 30)
+	_float_text("JACKPOT!", Vector2(14, 120), UI.GOLD_HI, 18, 200)
 
 
 func _near_miss(row: int) -> void:

@@ -46,8 +46,8 @@ func _ready() -> void:
 	UI.separator(self, 220, 100, 200)
 
 	var panel := UI.panel()
-	panel.position = Vector2(146, 110)
-	panel.size = Vector2(348, 154)
+	panel.position = Vector2(146, 100)
+	panel.size = Vector2(348, 174)
 	add_child(panel)
 
 	var ledger := UI.label("THE LEDGER", 6, UI.DIM, "header")
@@ -62,6 +62,7 @@ func _ready() -> void:
 		["DAMAGE DEALT", str(int(summary.get("damage_dealt", 0)))],
 		["DAMAGE TAKEN", str(int(summary.get("damage_taken", 0)))],
 		["RELICS TAKEN", str(int(summary.get("relics", 0)))],
+		["SEED", str(int(summary.get("seed", 0)))],
 	]
 	for i in range(rows.size()):
 		var row: Array = rows[i]
@@ -79,16 +80,16 @@ func _ready() -> void:
 			UI.separator(panel, 14, y + 17, 320)
 
 	var skull := UI.icon("res://assets/generated/skull_icon.png", 20)
-	skull.position = Vector2(238, 274)
+	skull.position = Vector2(238, 286)
 	add_child(skull)
 
 	var bone_line := UI.shadowed(UI.label("BONE COINS   +%d" % earned, 10, UI.GOLD, "header"))
-	bone_line.position = Vector2(264, 272)
+	bone_line.position = Vector2(264, 284)
 	bone_line.size = Vector2(220, 14)
 	add_child(bone_line)
 
 	var total_line := UI.label("VAULT TOTAL   %d" % total_bones, 7, UI.MUTED, "header")
-	total_line.position = Vector2(264, 287)
+	total_line.position = Vector2(264, 299)
 	total_line.size = Vector2(220, 12)
 	add_child(total_line)
 

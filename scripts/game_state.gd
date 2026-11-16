@@ -439,6 +439,7 @@ func summary() -> Dictionary:
 		"damage_taken": int(stats.get("damage_taken", 0)),
 		"victory": victory,
 		"bone_coins": bone_coins_earned(),
+		"seed": int(rng.seed),
 	}
 
 

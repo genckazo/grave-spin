@@ -8,6 +8,29 @@ const REELS_Y := 90
 const STRIP_ROWS := 9
 const STRIP_TRAVEL := 336.0
 
+
+class CabinetFrame:
+	extends Control
+	## Original slot-machine cabinet drawn in-engine: dark wood body, brass
+	## trim, marquee bulbs, reel window.
+	func _draw() -> void:
+		var r := Rect2(Vector2.ZERO, size)
+		draw_rect(r, Color("241a2e"), true)
+		draw_rect(r, Color("5f4312"), false, 2.0)
+		draw_rect(Rect2(3, 3, size.x - 6, size.y - 6), Color("8a6420"), false, 1.0)
+		# marquee strip with alternating bulbs
+		draw_rect(Rect2(6, 6, size.x - 12, 14), Color("120d1c"), true)
+		for i in range(8):
+			var on := i % 2 == 0
+			var c := Color("f6d27a") if on else Color("4a3413")
+			draw_circle(Vector2(16 + i * (size.x - 32) / 7.0, 13), 2.2, c)
+		# reel window
+		draw_rect(Rect2(16, 52, size.x - 32, 212), Color("0d0a14"), true)
+		draw_rect(Rect2(16, 52, size.x - 32, 212), Color("5f4312"), false, 1.0)
+		# corner rivets
+		for p in [Vector2(6, 6), Vector2(size.x - 6, 6), Vector2(6, size.y - 6), Vector2(size.x - 6, size.y - 6)]:
+			draw_circle(p, 2.0, Color("8a6420"))
+
 var main
 var state: GameState
 var screen_id := "fight"
@@ -18,6 +41,7 @@ var paused := false
 var shake_root: Control
 var fx_layer: Control
 var flash: ColorRect
+var edge_rects: Array = []
 var _flash_tween: Tween
 var _shake_id := 0
 
@@ -28,6 +52,7 @@ var coin_text: Label
 var fight_text: Label
 var pips: Array = []
 var relic_icons: Array = []
+var lives_icons: Array = []
 
 var enemy_art: Control
 var enemy_sprite: TextureRect
@@ -154,8 +179,10 @@ func _build_top_bar() -> void:
 
 
 func _build_machine() -> void:
-	var frame := UI.texture("res://assets/generated/machine_frame.png", 200, 260)
+	var frame := CabinetFrame.new()
 	frame.position = Vector2(14, 34)
+	frame.size = Vector2(200, 260)
+	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	shake_root.add_child(frame)
 
 	for c in range(3):
@@ -385,6 +412,16 @@ func _build_bottom() -> void:
 	pity_label.size = Vector2(90, 10)
 	shake_root.add_child(pity_label)
 
+	var lives_tag := UI.label("LIVES", 6, UI.DIM, "header")
+	lives_tag.position = Vector2(448, 341)
+	lives_tag.size = Vector2(30, 10)
+	shake_root.add_child(lives_tag)
+	for i in range(3):
+		var heart := UI.icon("res://assets/generated/suit_hearts_icon.png", 13)
+		heart.position = Vector2(480 + i * 17, 339)
+		shake_root.add_child(heart)
+		lives_icons.append(heart)
+
 	var pause_hint := UI.label("ESC  PAUSE", 6, UI.DIM, "header")
 	pause_hint.position = Vector2(526, 341)
 	pause_hint.size = Vector2(100, 10)
@@ -398,6 +435,23 @@ func _build_flash() -> void:
 	flash.set_anchors_preset(Control.PRESET_FULL_RECT)
 	flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	shake_root.add_child(flash)
+
+	# red edge vignette for player hits
+	edge_rects.clear()
+	var specs := [
+		[Vector2(0, 0), Vector2(640, 4)],
+		[Vector2(0, 356), Vector2(640, 4)],
+		[Vector2(0, 0), Vector2(4, 360)],
+		[Vector2(636, 0), Vector2(4, 360)],
+	]
+	for s in specs:
+		var edge := ColorRect.new()
+		edge.color = Color(0.75, 0.08, 0.06, 0.0)
+		edge.position = s[0]
+		edge.size = s[1]
+		edge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		shake_root.add_child(edge)
+		edge_rects.append(edge)
 
 
 func _build_pause_overlay() -> void:
@@ -463,6 +517,8 @@ func _refresh_all() -> void:
 	fight_text.text = "FLOOR %d · FIGHT %d / %d" % [int(state.enemy.get("floor", 1)), state.fight_index + 1, state.fights.size()]
 	for i in range(pips.size()):
 		pips[i].color = UI.GOLD if i <= state.fight_index else Color("3a3244")
+	for i in range(lives_icons.size()):
+		lives_icons[i].modulate = UI.RED if i < state.lives else Color(0.25, 0.22, 0.3, 0.6)
 
 	enemy_name.text = String(state.enemy["name"])
 	enemy_type.text = String(state.enemy["label"])
@@ -629,6 +685,26 @@ func _do_pull() -> void:
 
 	if bool(report.get("player_dead", false)):
 		busy = true
+		if not state.run_over:
+			# a life was spent: retry the same fight with entry HP restored
+			Sfx.play("skull", 0.9, -6.0)
+			_flash(Color(0.75, 0.08, 0.06, 0.35), 0.5)
+			_edge_flash(0.45)
+			_shake(4.0, 0.4)
+			_float_text("LIFE LOST — %d LEFT" % state.lives, Vector2(200, 120), UI.RED, 12, 240)
+			_refresh_log()
+			await _wait(0.9)
+			if not is_inside_tree():
+				return
+			state.retry_fight()
+			enemy_max_hp = max(1, state.enemy_hp)
+			_refresh_all()
+			busy = false
+			pull_button.disabled = false
+			pull_button.text = "PULL THE LEVER"
+			pull_hint.text = "SPACE  /  CLICK"
+			pull_button.grab_focus()
+			return
 		await _wait(0.7)
 		if is_inside_tree():
 			main.finish_run(false)
@@ -647,6 +723,8 @@ func _refresh_top_after_turn() -> void:
 	_display_coins(state.coins)
 	_display_block(state.block)
 	pity_label.text = "PITY %d/%d" % [state.pity, state.PITY_MAX] if state.pity > 0 else ""
+	for i in range(lives_icons.size()):
+		lives_icons[i].modulate = UI.RED if i < state.lives else Color(0.25, 0.22, 0.3, 0.6)
 	_shown_enemy_block = state.enemy_block
 	_refresh_enemy_block()
 	_refresh_intent()
@@ -693,6 +771,13 @@ func _on_reel_stop(c: int, grid: Array) -> void:
 		icons[r].texture = _symbol_texture(String(grid[r][c]))
 	Sfx.play("reelstop", 0.9 + c * 0.08, -4.0)
 	_dust_puff(Vector2(REELS_X + c * CELL + 28, REELS_Y + 166))
+	if not main.fast:
+		# settle bounce on the stopped reel
+		var col: Control = reel["col"]
+		col.pivot_offset = Vector2(CELL / 2.0, CELL * 1.5)
+		var tw := create_tween()
+		tw.tween_property(col, "scale", Vector2(1.0, 1.09), 0.07).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tw.tween_property(col, "scale", Vector2.ONE, 0.16).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
 func _set_strip_final(c: int, grid: Array) -> void:
@@ -864,6 +949,7 @@ func _enemy_turn(report: Dictionary, intent: Dictionary) -> void:
 
 		Sfx.play("hurt", 1.0, -3.0)
 		_flash(Color(0.75, 0.08, 0.06, 0.22), 0.28)
+		_edge_flash(0.3)
 		_shake(2.8 + float(report["skulls"]), 0.26)
 		if blocked > 0:
 			Sfx.play("block", 0.9, -2.0)
@@ -965,6 +1051,15 @@ func _flash(color: Color, duration: float) -> void:
 	flash.color = color
 	_flash_tween = create_tween()
 	_flash_tween.tween_property(flash, "color:a", 0.0, duration)
+
+
+func _edge_flash(duration: float) -> void:
+	if main.fast:
+		return
+	for edge in edge_rects:
+		var tw := create_tween()
+		tw.tween_property(edge, "color:a", 0.55, 0.06)
+		tw.tween_property(edge, "color:a", 0.0, duration)
 
 
 func _float_text(text: String, pos: Vector2, color: Color, size: int, width: float) -> void:

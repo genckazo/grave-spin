@@ -15,6 +15,8 @@ var fast := false
 var autoplay := false
 var shots := false
 var _dust: CPUParticles2D
+var _bg_layers: Array = []
+var _bg_t := 0.0
 
 
 func _ready() -> void:
@@ -51,14 +53,36 @@ func _ready() -> void:
 
 
 func _build_background() -> void:
-	var bg := TextureRect.new()
-	bg.texture = load("res://assets/generated/background.png")
-	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	bg.stretch_mode = TextureRect.STRETCH_SCALE
-	bg.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(bg)
+	# Graveyard-at-dusk parallax: three original layers drifting at different
+	# speeds. Layers are wider than the viewport so the drift never shows a gap.
+	var layers := [
+		{"path": "res://assets/generated/bg_sky.png", "speed": 0.6, "amp": 3.0},
+		{"path": "res://assets/generated/bg_mid.png", "speed": 1.4, "amp": 7.0},
+		{"path": "res://assets/generated/bg_near.png", "speed": 2.4, "amp": 12.0},
+	]
+	for l in layers:
+		var bg := TextureRect.new()
+		bg.texture = load(l["path"])
+		bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		bg.stretch_mode = TextureRect.STRETCH_SCALE
+		bg.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		bg.custom_minimum_size = Vector2(640 + 32, 360)
+		bg.size = Vector2(640 + 32, 360)
+		bg.position = Vector2(-16, 0)
+		add_child(bg)
+		_bg_layers.append({"node": bg, "speed": l["speed"], "amp": l["amp"], "phase": randf() * TAU})
+
+
+func _process(delta: float) -> void:
+	var reduced := false
+	if MetaSave.enabled:
+		reduced = bool(MetaSave.load_meta().get("settings", {}).get("reduced_motion", false))
+	if reduced:
+		return
+	_bg_t += delta
+	for l in _bg_layers:
+		l["node"].position.x = -16.0 + sin(_bg_t * 0.045 * l["speed"] + l["phase"]) * l["amp"]
 
 	var shade := ColorRect.new()
 	shade.color = Color(0.02, 0.01, 0.03, 0.18)

@@ -48,10 +48,16 @@ func start_run(seed_value: int = 0) -> void:
 	fights = GameData.fights
 	enemies = GameData.enemies
 	max_hp = int(config["player_hp"])
+	if MetaSave.enabled:
+		max_hp += int(MetaSave.unlock_value(MetaSave.load_meta(), "max_hp"))
 	hp = max_hp
 	coins = 0
 	block = 0
 	relics = []
+	if MetaSave.enabled:
+		var start_relic := str(MetaSave.unlock_value(MetaSave.load_meta(), "start_relic"))
+		if start_relic != "" and start_relic != "0":
+			relics.append(start_relic)
 	fight_index = 0
 	fights_won = 0
 	floor = 1

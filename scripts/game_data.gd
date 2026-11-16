@@ -7,6 +7,7 @@ static var config: Dictionary = {}
 static var relics: Array = []
 static var enemies: Dictionary = {}
 static var fights: Array = []
+static var unlocks: Array = []
 
 static func ensure_loaded() -> void:
 	if not config.is_empty():
@@ -17,6 +18,8 @@ static func ensure_loaded() -> void:
 	enemies = _read_json("res://data/enemies.json")
 	var fight_data = _read_json("res://data/fights.json")
 	fights = fight_data if fight_data is Array else []
+	var unlock_data = _read_json("res://data/unlocks.json")
+	unlocks = unlock_data if unlock_data is Array else []
 
 static func _read_json(path: String) -> Variant:
 	var f := FileAccess.open(path, FileAccess.READ)
@@ -32,4 +35,10 @@ static func relic_by_id(id: String) -> Dictionary:
 	for r in relics:
 		if String(r.get("id", "")) == id:
 			return r
+	return {}
+
+static func unlock_by_id(id: String) -> Dictionary:
+	for u in unlocks:
+		if String(u.get("id", "")) == id:
+			return u
 	return {}

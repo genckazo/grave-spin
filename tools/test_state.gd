@@ -14,6 +14,7 @@ func _init() -> void:
 	_test_pity()
 	_test_flow()
 	_test_endless()
+	_test_unlocks()
 	_test_meta_save()
 	var verdict := "PASS" if failures == 0 else "FAIL"
 	print("TESTS %s  failures=%d" % [verdict, failures])
@@ -296,6 +297,23 @@ func _test_endless() -> void:
 	s.resolve(_grid("sword"))
 	s.resolve(_grid("sword"))
 	s.resolve(_grid("sword"))
+
+
+func _test_unlocks() -> void:
+	GameData.ensure_loaded()
+	_check(GameData.unlocks.size() == 6, "6 unlock nodes load, got %d" % GameData.unlocks.size())
+	var meta := {"bone_coins": 100, "unlocks": []}
+	_check(not MetaSave.buy_unlock(meta, "hp2"), "locked node hp2 cannot be bought without hp1")
+	_check(MetaSave.buy_unlock(meta, "hp1"), "hp1 bought with 20 of 100 coins")
+	_check(int(meta["bone_coins"]) == 80, "coins deducted to 80, got %d" % int(meta["bone_coins"]))
+	_check(MetaSave.buy_unlock(meta, "hp2"), "hp2 now buyable")
+	_check(MetaSave.unlock_value(meta, "max_hp") == 12, "unlock_value max_hp = 4+8 = 12, got %d" % MetaSave.unlock_value(meta, "max_hp"))
+	var poor := {"bone_coins": 5, "unlocks": []}
+	_check(not MetaSave.buy_unlock(poor, "hp1"), "cannot buy hp1 with only 5 coins")
+	MetaSave.enabled = false
+	var s := _fresh()
+	_check(s.max_hp == 52, "no meta (disabled): max_hp stays 52, got %d" % s.max_hp)
+	MetaSave.enabled = true
 
 
 func _test_meta_save() -> void:

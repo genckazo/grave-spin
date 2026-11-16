@@ -34,6 +34,10 @@ func _init() -> void:
 				guard += 1
 				var roll: Dictionary = s.roll()
 				var rep: Dictionary = s.resolve(roll["grid"])
+				if bool(rep.get("player_dead", false)) and not s.run_over:
+					# a life was spent: retry the same fight with entry HP
+					s.retry_fight()
+					continue
 				if bool(rep.get("enemy_dead", false)):
 					var outcome := s.on_enemy_defeated()
 					if outcome == "victory":

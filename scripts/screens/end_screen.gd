@@ -57,6 +57,7 @@ func _ready() -> void:
 
 	var rows := [
 		["FIGHTS WON", "%d / %d" % [int(summary.get("fights_won", 0)), int(summary.get("fights_total", 5))]],
+		["LIVES SPENT", "%d / %d" % [int(summary.get("lives_spent", 0)), int(summary.get("lives_spent", 0)) + int(summary.get("lives", 0))]],
 		["SPINS", str(int(summary.get("spins", 0)))],
 		["COINS COLLECTED", str(int(summary.get("coins", 0)))],
 		["DAMAGE DEALT", str(int(summary.get("damage_dealt", 0)))],
@@ -66,7 +67,7 @@ func _ready() -> void:
 	]
 	for i in range(rows.size()):
 		var row: Array = rows[i]
-		var y := 24.0 + i * 20.0
+		var y := 22.0 + i * 18.0
 		var key := UI.label(String(row[0]), 7, UI.MUTED, "header")
 		key.position = Vector2(14, y)
 		key.size = Vector2(200, 12)
@@ -77,7 +78,7 @@ func _ready() -> void:
 		value.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		panel.add_child(value)
 		if i < rows.size() - 1:
-			UI.separator(panel, 14, y + 17, 320)
+			UI.separator(panel, 14, y + 15, 320)
 
 	var skull := UI.icon("res://assets/generated/skull_icon.png", 20)
 	skull.position = Vector2(238, 286)

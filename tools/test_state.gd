@@ -18,6 +18,7 @@ func _init() -> void:
 	_test_consumables()
 	_test_shop()
 	_test_shop_flow()
+	_test_lives()
 	_test_boss_rules()
 	_test_sequencing()
 	_test_tutorial_tooltips()
@@ -201,7 +202,8 @@ func _test_relics() -> void:
 	vamp.enemy_hp = 1
 	vamp.resolve([["sword", "sword", "sword"], ["shield", "shield", "shield"], ["shield", "shield", "shield"]])
 	vamp.on_enemy_defeated()
-	_check(int(vamp.hp) == 47, "Vampiric Edge: kill heals 1 on top of the 16 between-fight heal (30->47), got %d" % int(vamp.hp))
+	var heal_amt := int(GameData.config["heal_between_fights"])
+	_check(int(vamp.hp) == 30 + heal_amt + 1, "Vampiric Edge: kill heals 1 on top of the %d between-fight heal (30->%d), got %d" % [heal_amt, 30 + heal_amt + 1, int(vamp.hp)])
 
 	var pockets := _fresh()
 	_add(pockets, "deep_pockets")
@@ -281,7 +283,8 @@ func _test_flow() -> void:
 	next.resolve(_grid("sword"))
 	var next_outcome: String = next.on_enemy_defeated()
 	_check(next_outcome == "draft", "an early win returns draft")
-	_check(next.hp == 46, "an early win heals 16 between fights (30->46), got %d" % next.hp)
+	var heal_amt := int(GameData.config["heal_between_fights"])
+	_check(next.hp == 30 + heal_amt, "an early win heals %d between fights (30->%d), got %d" % [heal_amt, 30 + heal_amt, next.hp])
 	_check(next.fights_won == 1, "fights_won increments")
 
 	var bones := _fresh()
@@ -495,6 +498,52 @@ func _test_shop_flow() -> void:
 	g.shop_pending = true
 	g.leave_shop()
 	_check(not g.shop_pending, "leave_shop clears shop_pending")
+
+
+func _test_lives() -> void:
+	GameData.ensure_loaded()
+	# a run starts with 3 lives (config)
+	var s := GameState.new()
+	s.start_run(21)
+	s.tutorial_active = false
+	_check(s.lives == 3, "a run starts with 3 lives, got %d" % s.lives)
+	_check(s.fight_entry_hp == s.hp and s.enemy_max_hp == s.enemy_hp, "entry HP and enemy max HP are recorded at fight start")
+	# lethal hit with lives remaining: lose 1 life, run continues
+	s.hp = 1
+	var rep: Dictionary = s.resolve(_grid("skull"))
+	_check(bool(rep.get("player_dead", false)) and bool(rep.get("life_lost", false)), "lethal hit reports player_dead + life_lost")
+	_check(s.lives == 2 and not s.run_over, "life decrements 3->2 and the run continues, got %d" % s.lives)
+	# retry restores entry HP and the enemy, keeps the boss rule
+	s.fight_index = 4
+	s._start_fight()
+	var entry_hp := s.hp
+	var rule := s.boss_rule
+	_check(rule != "", "boss fight rolled a rule to keep")
+	s.enemy_hp = 5
+	s.hp = 3
+	s.enemy_block = 4
+	s.enemy_power = 2
+	s.intent_index = 2
+	s.retry_fight()
+	_check(s.hp == entry_hp and s.enemy_hp == s.enemy_max_hp and s.enemy_block == 0 and s.enemy_power == 0 and s.intent_index == 0, "retry restores entry HP and a fresh enemy")
+	_check(s.boss_rule == rule, "boss rule stays as announced across a retry")
+	# at 1 life left, death ends the run
+	s.lives = 1
+	s.hp = 1
+	var rep2: Dictionary = s.resolve(_grid("skull"))
+	_check(bool(rep2.get("player_dead", false)) and not bool(rep2.get("life_lost", false)), "last life: player_dead without life_lost")
+	_check(s.run_over and s.lives == 0, "at 0 lives the run is over")
+	# summary carries lives for the end screen
+	var sum := s.summary()
+	_check(int(sum.get("lives", -1)) == 0 and int(sum.get("lives_spent", -1)) == 3, "summary reports lives=0, lives_spent=3")
+	# second wind still takes precedence over losing a life
+	var w := GameState.new()
+	w.start_run(22)
+	w.tutorial_active = false
+	_add(w, "second_wind")
+	w.hp = 1
+	var rep3: Dictionary = w.resolve(_grid("skull"))
+	_check(bool(rep3.get("second_wind", false)) and w.lives == 3 and not bool(rep3.get("player_dead", false)), "Second Wind saves the life: lives stay 3")
 
 
 func _test_boss_rules() -> void:

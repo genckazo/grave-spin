@@ -14,6 +14,9 @@ var relics: Array = []
 
 var hp: int = 52
 var max_hp: int = 52
+var lives: int = 3
+var fight_entry_hp: int = 0
+var enemy_max_hp: int = 0
 var coins: int = 0
 var block: int = 0
 var bet: int = 1
@@ -73,6 +76,7 @@ func start_run(seed_value: int = 0, mode := "normal") -> void:
 	if MetaSave.enabled:
 		max_hp += int(MetaSave.unlock_value(MetaSave.load_meta(), "max_hp"))
 	hp = max_hp
+	lives = int(config.get("lives", 3))
 	coins = 0
 	block = 0
 	relics = []
@@ -135,6 +139,8 @@ func _start_fight() -> void:
 		"boss": bool(fight.get("boss", false)),
 	}
 	enemy_hp = int(round(int(fight["hp"]) * diff_hp))
+	enemy_max_hp = enemy_hp
+	fight_entry_hp = hp
 	boss_rule = ""
 	if bool(fight.get("boss", false)) and not GameData.boss_rules.is_empty():
 		var rule: Dictionary = GameData.boss_rules[rng.randi_range(0, GameData.boss_rules.size() - 1)]
@@ -431,9 +437,15 @@ func resolve(grid: Array) -> Dictionary:
 				else:
 					hp = 0
 					report["player_dead"] = true
-					run_over = true
-					_report_run()
-					_log("The machine takes you.", "red")
+					if lives > 1:
+						lives -= 1
+						report["life_lost"] = true
+						_log("A life is spent. %d remain%s." % [lives, "" if lives == 1 else "s"], "cursed")
+					else:
+						lives = 0
+						run_over = true
+						_report_run()
+						_log("The machine takes you.", "red")
 		"defend":
 			enemy_block += int(intent["value"])
 			report["enemy_action"] = "defend"
@@ -490,6 +502,19 @@ func _shop_after_this_boss() -> bool:
 func begin_next_fight() -> void:
 	fight_index += 1
 	_start_fight()
+
+
+func retry_fight() -> void:
+	## After losing a life: the SAME fight again. Player HP returns to the value
+	## held when the fight was entered; the enemy is restored. The boss rule
+	## stays exactly as announced.
+	hp = fight_entry_hp
+	enemy_hp = enemy_max_hp
+	enemy_block = 0
+	enemy_power = 0
+	intent_index = 0
+	block = 0
+	_log("The grave spits you back out. Again.", "gold")
 
 
 func _endless_enabled() -> bool:
@@ -568,6 +593,8 @@ func summary() -> Dictionary:
 		"victory": victory,
 		"endless_depth": endless_depth,
 		"bone_coins": bone_coins_earned(),
+		"lives": lives,
+		"lives_spent": int(config.get("lives", 3)) - lives,
 		"seed": int(rng.seed),
 	}
 

@@ -30,7 +30,7 @@ func _init() -> void:
 			var s := GameState.new()
 			s.start_run(seed_base + i, mode)
 			var guard := 0
-			while not s.run_over and guard < 600:
+			while not s.run_over and guard < 900:
 				guard += 1
 				var roll: Dictionary = s.roll()
 				var rep: Dictionary = s.resolve(roll["grid"])

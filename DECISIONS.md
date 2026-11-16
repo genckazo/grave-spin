@@ -50,3 +50,8 @@ Choices made where the brief left room; simpler option taken on ambiguity.
 - Shop screen (scripts/screens/shop_screen.gd) opens after boss fights 5 and 10 (fight index 4 / 9) via GameState.shop_pending; leaving starts the next fight.
 - Shop relic prices by rarity (relics had no price field; draft stays free): common 10c, rare 16c, cursed 8c, epic 22c.
 - Reroll re-deals relics + consumable stock; price resets on the next visit.
+
+## Lives (JOB 2, owner's design call)
+- 3 lives per run, heart icons in the fight HUD, "LIVES LEFT" on the run-end ledger.
+- Death with lives left: lose 1 life, retry the SAME fight, HP restored to entry HP, boss rule unchanged. At 0 lives: existing run-over flow. Meta/bone coins and pity unchanged.
+- Sim models lives automatically (retry keeps run_over=false). Before lives: normal 45.9/40.8/46.3/40.7/41.4% (heal 16). After lives at heal 16: 61.2/58.4/62.8/57.5/59.5% — 12345 and 2024 OUT above 60, stated plainly. Retuned heal_between_fights 16->13: normal 56.4/51.3/55.5/50.5/52.5% ALL IN 40-60; high_roller 29.0/28.5/27.3/30.0/27.6% ALL IN 15-35.

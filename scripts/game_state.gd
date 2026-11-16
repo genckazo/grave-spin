@@ -41,6 +41,8 @@ var tutorial_active := false
 var boss_rule := ""
 var shop_rerolls := 0
 var shop_pending := false
+var lives := 3
+var entry_hp := 0
 var shop_stock: Dictionary = {}
 var shop_upgrades_bought: Array = []
 var shop_interest := 0
@@ -95,6 +97,7 @@ func start_run(seed_value: int = 0, mode := "normal") -> void:
 	endless_depth = 0
 	shop_pending = false
 	shop_stock = {}
+	lives = 3
 	logs = []
 	stats = {"spins": 0, "damage_dealt": 0, "damage_taken": 0, "healed": 0, "blocked": 0}
 	tutorial_active = false
@@ -113,6 +116,7 @@ func start_run(seed_value: int = 0, mode := "normal") -> void:
 
 
 func _start_fight() -> void:
+	entry_hp = hp
 	var fight: Dictionary
 	if fight_index < fights.size():
 		fight = fights[fight_index]
@@ -300,6 +304,8 @@ func resolve(grid: Array) -> Dictionary:
 		"second_wind": false,
 		"sequence": [],
 		"fast": _fast_mode(),
+		"lives": lives,
+		"life_lost": false,
 	}
 
 	var total_skulls := 0
@@ -429,11 +435,23 @@ func resolve(grid: Array) -> Dictionary:
 					report["second_wind"] = true
 					_log("SECOND WIND. You claw back with %d HP." % wind, "good")
 				else:
-					hp = 0
-					report["player_dead"] = true
-					run_over = true
-					_report_run()
-					_log("The machine takes you.", "red")
+					if lives > 1:
+						lives -= 1
+						var rule := boss_rule
+						hp = entry_hp
+						_start_fight()
+						boss_rule = rule
+						report["life_lost"] = true
+						report["lives"] = lives
+						_log("A life is spent (%d left). Same fight, wounds bound to entry HP." % lives, "red")
+					else:
+						lives = 0
+						hp = 0
+						report["player_dead"] = true
+						report["lives"] = 0
+						run_over = true
+						_report_run()
+						_log("The machine takes you.", "red")
 		"defend":
 			enemy_block += int(intent["value"])
 			report["enemy_action"] = "defend"
@@ -555,6 +573,7 @@ func summary() -> Dictionary:
 		"endless_depth": endless_depth,
 		"bone_coins": bone_coins_earned(),
 		"seed": int(rng.seed),
+		"lives_left": lives,
 	}
 
 
@@ -614,6 +633,7 @@ func _report_run() -> void:
 		"perfect_fights": int(stats.get("perfect_fights", 0)),
 		"bet5_wins": int(stats.get("bet5_wins", 0)),
 		"cursed_relics": cursed,
+		"lives_left": lives,
 		"no_heal": victory and int(stats.get("healed", 0)) == 0,
 		"daily": false,
 	})

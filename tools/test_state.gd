@@ -15,6 +15,7 @@ func _init() -> void:
 	_test_flow()
 	_test_endless()
 	_test_unlocks()
+	_test_lives()
 	_test_shop_flow()
 	_test_consumables()
 	_test_shop()
@@ -201,7 +202,7 @@ func _test_relics() -> void:
 	vamp.enemy_hp = 1
 	vamp.resolve([["sword", "sword", "sword"], ["shield", "shield", "shield"], ["shield", "shield", "shield"]])
 	vamp.on_enemy_defeated()
-	_check(int(vamp.hp) == 47, "Vampiric Edge: kill heals 1 on top of the 16 between-fight heal (30->47), got %d" % int(vamp.hp))
+	_check(int(vamp.hp) == 44, "Vampiric Edge: kill heals 1 on top of the 13 between-fight heal (30->44), got %d" % int(vamp.hp))
 
 	var pockets := _fresh()
 	_add(pockets, "deep_pockets")
@@ -281,7 +282,7 @@ func _test_flow() -> void:
 	next.resolve(_grid("sword"))
 	var next_outcome: String = next.on_enemy_defeated()
 	_check(next_outcome == "draft", "an early win returns draft")
-	_check(next.hp == 46, "an early win heals 16 between fights (30->46), got %d" % next.hp)
+	_check(next.hp == 43, "an early win heals 13 between fights (30->43), got %d" % next.hp)
 	_check(next.fights_won == 1, "fights_won increments")
 
 	var bones := _fresh()
@@ -328,6 +329,38 @@ func _test_unlocks() -> void:
 	var s := _fresh()
 	_check(s.max_hp == 52, "no meta (disabled): max_hp stays 52, got %d" % s.max_hp)
 	MetaSave.enabled = true
+
+
+func _test_lives() -> void:
+	GameData.ensure_loaded()
+	var g := GameState.new()
+	g.start_run(41)
+	g.tutorial_active = false
+	_check(g.lives == 3, "run starts with 3 lives, got %d" % g.lives)
+	# force a death: huge attack intent, low hp, no block
+	g.enemy["intents"] = [{"type": "attack", "value": 60}]
+	g.intent_index = 0
+	g.hp = 5
+	g.block = 0
+	var fi := g.fight_index
+	var rule := g.boss_rule
+	var grid := [["skull", "coin", "coin"], ["coin", "coin", "coin"], ["coin", "coin", "coin"]]
+	var entry := g.entry_hp
+	var rep: Dictionary = g.resolve(grid)
+	_check(bool(rep.get("life_lost", false)) and not bool(rep.get("player_dead", false)), "death with lives left triggers a retry, not run-over")
+	_check(g.lives == 2 and not g.run_over, "life decremented 3->2, run continues")
+	_check(g.hp == entry and g.fight_index == fi, "retry restores entry HP %d and retries the SAME fight %d" % [entry, fi + 1])
+	_check(g.boss_rule == rule, "boss rule for the fight stays as announced")
+	_check(g.enemy_hp > 0, "enemy reset for the retry")
+	# drain the last life
+	g.lives = 1
+	g.enemy["intents"] = [{"type": "attack", "value": 60}]
+	g.intent_index = 0
+	g.hp = 5
+	g.block = 0
+	var rep2: Dictionary = g.resolve(grid)
+	_check(bool(rep2.get("player_dead", false)) and g.run_over and g.lives == 0, "at 0 lives the run ends (existing finish flow)")
+	_check(g.summary().get("lives_left", -1) == 0, "run-end summary reports lives left")
 
 
 func _test_shop_flow() -> void:

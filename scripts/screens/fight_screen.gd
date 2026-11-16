@@ -27,6 +27,7 @@ var block_text: Label
 var coin_text: Label
 var fight_text: Label
 var pips: Array = []
+var lives_icons: Array = []
 var relic_icons: Array = []
 
 var enemy_art: Control
@@ -144,6 +145,13 @@ func _build_top_bar() -> void:
 		pip.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		shake_root.add_child(pip)
 		pips.append(pip)
+
+	for i in range(3):
+		var heart := UI.icon("res://assets/generated/suit_hearts_icon.png", 14)
+		heart.position = Vector2(516 + i * 17, 10)
+		heart.tooltip_text = "Lives"
+		shake_root.add_child(heart)
+		lives_icons.append(heart)
 
 	pause_button = UI.button("II", 8, 28, 24)
 	pause_button.position = Vector2(604, 5)
@@ -463,6 +471,8 @@ func _refresh_all() -> void:
 	fight_text.text = "FLOOR %d · FIGHT %d / %d" % [int(state.enemy.get("floor", 1)), state.fight_index + 1, state.fights.size()]
 	for i in range(pips.size()):
 		pips[i].color = UI.GOLD if i <= state.fight_index else Color("3a3244")
+	for i in range(lives_icons.size()):
+		lives_icons[i].modulate.a = 1.0 if i < state.lives else 0.22
 
 	enemy_name.text = String(state.enemy["name"])
 	enemy_type.text = String(state.enemy["label"])

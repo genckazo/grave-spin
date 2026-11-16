@@ -57,6 +57,7 @@ func _ready() -> void:
 
 	var rows := [
 		["FIGHTS WON", "%d / %d" % [int(summary.get("fights_won", 0)), int(summary.get("fights_total", 5))]],
+		["LIVES LEFT", "%d / 3" % int(summary.get("lives_left", 3))],
 		["SPINS", str(int(summary.get("spins", 0)))],
 		["COINS COLLECTED", str(int(summary.get("coins", 0)))],
 		["DAMAGE DEALT", str(int(summary.get("damage_dealt", 0)))],

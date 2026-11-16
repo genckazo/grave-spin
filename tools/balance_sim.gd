@@ -18,11 +18,12 @@ func _init() -> void:
 		var wins := 0
 		var spins_total := 0
 		var fights_total := 0
+		var depth_total := 0
 		for i in range(RUNS):
 			var s := GameState.new()
 			s.start_run(seed_base + i)
 			var guard := 0
-			while not s.run_over and guard < 400:
+			while not s.run_over and guard < 600:
 				guard += 1
 				var roll: Dictionary = s.roll()
 				var rep: Dictionary = s.resolve(roll["grid"])
@@ -36,13 +37,15 @@ func _init() -> void:
 					s.begin_next_fight()
 			if s.victory:
 				wins += 1
+			depth_total += s.endless_depth
 			spins_total += s.spin_count
 			fights_total += s.fights_won
 		var rate := float(wins) / float(RUNS)
 		var ok := rate >= BAND_LOW and rate <= BAND_HIGH
 		all_ok = all_ok and ok
-		print("seed %d: win rate %.1f%% (%d/%d)  avg spins %.1f  avg fights %.2f/10  band 40-60%% -> %s" % [
+		print("seed %d: win rate %.1f%% (%d/%d)  avg spins %.1f  avg fights %.2f/%d  avg endless depth %.2f  band 40-60%% -> %s" % [
 			seed_base, rate * 100.0, wins, RUNS, float(spins_total) / RUNS, float(fights_total) / RUNS,
+			GameData.fights.size(), float(depth_total) / RUNS,
 			"IN" if ok else "OUT"])
 	print("SIM %s" % ("PASS" if all_ok else "FAIL"))
 	quit(0 if all_ok else 1)

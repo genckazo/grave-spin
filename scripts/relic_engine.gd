@@ -15,6 +15,10 @@ extends RefCounted
 ##   blood_coin          +N coins per point of damage taken
 ##   skull_damage        +N damage to the enemy per skull
 ##   triple_sword_bonus  +N damage for a three-sword payline
+##   all_bonus           +N to every payout (sword/block/heal/coin)
+##   first_skull_free    the first skull each fight adds no penalty
+##   max_relics_bonus    +N to the relic carry cap
+##   kill_heal           +N HP when an enemy is slain
 
 static func total(state, effect: String) -> int:
 	var sum := 0

@@ -50,15 +50,54 @@
     "flavor": "The dead nod to their own."
   },
   {
-    "id": "grave_pact",
-    "name": "Grave Pact",
+    "id": "iron_frame",
+    "name": "Iron Frame",
+    "effect": "start_block",
+    "value": 4,
+    "rarity": "common",
+    "icon": "dice_shield_icon.png",
+    "desc": "Start every fight with 4 block.",
+    "flavor": "The machine was built to take a beating."
+  },
+  {
+    "id": "lucky_coin",
+    "name": "Lucky Coin",
+    "effect": "coin_bonus",
+    "value": 1,
+    "rarity": "common",
+    "icon": "coin_icon.png",
+    "desc": "Coins pay out +1 extra each.",
+    "flavor": "It lands on its edge every time."
+  },
+  {
+    "id": "thick_hide",
+    "name": "Thick Hide",
+    "effect": "start_block",
+    "value": 3,
+    "rarity": "common",
+    "icon": "shield_icon.png",
+    "desc": "Start every fight with 3 block.",
+    "flavor": "Scar tissue, but make it fashion."
+  },
+  {
+    "id": "potion_belt",
+    "name": "Potion Belt",
+    "effect": "heal_bonus",
+    "value": 1,
+    "rarity": "common",
+    "icon": "potion_icon.png",
+    "desc": "Potions heal +1 extra.",
+    "flavor": "One for the road. Two, actually."
+  },
+  {
+    "id": "sharp_teeth",
+    "name": "Sharp Teeth",
     "effect": "sword_bonus",
-    "value": 2,
-    "value2": 8,
-    "rarity": "cursed",
-    "icon": "card_icon.png",
-    "desc": "Swords deal +2 damage. Max HP -8 when taken.",
-    "flavor": "Sign here. The ink is already warm."
+    "value": 1,
+    "rarity": "common",
+    "icon": "bow_icon.png",
+    "desc": "Swords deal +1 damage.",
+    "flavor": "You bite back now."
   },
   {
     "id": "second_wind",
@@ -82,16 +121,6 @@
     "flavor": "Seven is not a lucky number here. It is a promise."
   },
   {
-    "id": "iron_frame",
-    "name": "Iron Frame",
-    "effect": "start_block",
-    "value": 4,
-    "rarity": "common",
-    "icon": "dice_shield_icon.png",
-    "desc": "Start every fight with 4 block.",
-    "flavor": "The machine was built to take a beating."
-  },
-  {
     "id": "bloodstone",
     "name": "Bloodstone",
     "effect": "blood_coin",
@@ -112,6 +141,47 @@
     "flavor": "Wear the thing that wants to eat you."
   },
   {
+    "id": "gamblers_eye",
+    "name": "Gambler's Eye",
+    "effect": "first_skull_free",
+    "value": 1,
+    "rarity": "rare",
+    "icon": "skull_icon.png",
+    "desc": "The first skull each fight adds no damage.",
+    "flavor": "You saw it coming. You always do."
+  },
+  {
+    "id": "deep_pockets",
+    "name": "Deep Pockets",
+    "effect": "max_relics_bonus",
+    "value": 1,
+    "rarity": "rare",
+    "icon": "card_icon.png",
+    "desc": "You can carry 1 more relic.",
+    "flavor": "The grave has room for more."
+  },
+  {
+    "id": "vampiric_edge",
+    "name": "Vampiric Edge",
+    "effect": "kill_heal",
+    "value": 1,
+    "rarity": "rare",
+    "icon": "suit_hearts_icon.png",
+    "desc": "Heal 1 HP when you slay an enemy.",
+    "flavor": "Every grave feeds you a little."
+  },
+  {
+    "id": "grave_pact",
+    "name": "Grave Pact",
+    "effect": "sword_bonus",
+    "value": 2,
+    "value2": 8,
+    "rarity": "cursed",
+    "icon": "card_icon.png",
+    "desc": "Swords deal +2 damage. Max HP -8 when taken.",
+    "flavor": "Sign here. The ink is already warm."
+  },
+  {
     "id": "dead_mans_hand",
     "name": "Dead Man's Hand",
     "effect": "triple_sword_bonus",
@@ -120,5 +190,16 @@
     "icon": "dice_skull_icon.png",
     "desc": "A payline of three swords deals +6 bonus damage.",
     "flavor": "Three blades. No bluff."
+  },
+  {
+    "id": "house_edge",
+    "name": "House Edge",
+    "effect": "all_bonus",
+    "value": 1,
+    "value2": 6,
+    "rarity": "cursed",
+    "icon": "award_icon.png",
+    "desc": "Every payout +1. Max HP -6 when taken.",
+    "flavor": "The house always wins. Tonight, so do you."
   }
 ]

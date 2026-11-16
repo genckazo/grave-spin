@@ -175,6 +175,11 @@ func resolve(grid: Array) -> Dictionary:
 	var skull_damage := RelicEngine.total(self, "skull_damage")
 	var triple_bonus := RelicEngine.total(self, "triple_sword_bonus")
 	var blood_coin := RelicEngine.total(self, "blood_coin")
+	var all_bonus := RelicEngine.total(self, "all_bonus")
+	sword_bonus += all_bonus
+	block_bonus += all_bonus
+	heal_bonus += all_bonus
+	coin_bonus += all_bonus
 
 	var report := {
 		"rows": [],
@@ -210,10 +215,10 @@ func resolve(grid: Array) -> Dictionary:
 				"coin": co += 1
 				"skull": sk += 1
 
-		var dmg := sw * (int(values["sword"]) + sword_bonus)
+		var dmg := sw * (int(values["sword"]) + sword_bonus) * bet
 		if sw == 3 and triple_bonus > 0:
-			dmg += triple_bonus
-			_log("Dead Man's Hand: three swords. +%d." % triple_bonus, "cursed")
+			dmg += triple_bonus * bet
+			_log("Dead Man's Hand: three swords. +%d." % (triple_bonus * bet), "cursed")
 		if skull_damage > 0 and sk > 0:
 			dmg += sk * skull_damage
 
@@ -231,7 +236,7 @@ func resolve(grid: Array) -> Dictionary:
 		report["heal"] += healed
 		stats["healed"] += healed
 
-		var coin_gain := co * (int(values["coin"]) + coin_bonus)
+		var coin_gain := co * (int(values["coin"]) + coin_bonus) * bet
 		coins += coin_gain
 		report["coins"] += coin_gain
 
@@ -276,12 +281,16 @@ func resolve(grid: Array) -> Dictionary:
 
 	var intent := get_intent()
 	report["intent"] = intent
-	var penalty := maxi(0, int(values["skull"]) - RelicEngine.total(self, "skull_reduction"))
+	var penalty := maxi(0, int(values["skull"]) - RelicEngine.total(self, "skull_reduction")) * bet
 	report["skull_penalty"] = penalty
+
+	var skull_count := total_skulls
+	if RelicEngine.has_effect(self, "first_skull_free"):
+		skull_count = maxi(0, total_skulls - 1)
 
 	match String(intent["type"]):
 		"attack", "heavy":
-			var incoming := int(intent["value"]) + total_skulls * penalty
+			var incoming := int(intent["value"]) + skull_count * penalty
 			var blocked := mini(block, incoming)
 			var taken := incoming - blocked
 			hp -= taken
@@ -289,7 +298,7 @@ func resolve(grid: Array) -> Dictionary:
 			stats["damage_taken"] += taken
 			stats["blocked"] += blocked
 			if total_skulls > 0:
-				_log("Skulls bite: +%d incoming." % (total_skulls * penalty), "cursed")
+				_log("Skulls bite: +%d incoming." % (skull_count * penalty), "cursed")
 			if blocked > 0:
 				_log("%d blocked. %d gets through." % [blocked, taken], "blue")
 			else:
@@ -332,6 +341,10 @@ func on_enemy_defeated() -> String:
 		return "victory"
 	hp = min(max_hp, hp + int(config["heal_between_fights"]))
 	_log("You bind your wounds (+%d HP)." % int(config["heal_between_fights"]), "good")
+	var kill_heal := RelicEngine.total(self, "kill_heal")
+	if kill_heal > 0:
+		hp = min(max_hp, hp + kill_heal)
+		_log("Vampiric Edge: +%d HP." % kill_heal, "good")
 	return "draft"
 
 
@@ -341,6 +354,9 @@ func begin_next_fight() -> void:
 
 
 func draft_options() -> Array:
+	var cap := int(config["max_relics"]) + RelicEngine.total(self, "max_relics_bonus")
+	if relics.size() >= cap:
+		return []
 	var owned := relic_ids()
 	var pool: Array = []
 	for r in GameData.relics:
@@ -355,7 +371,7 @@ func choose_relic(relic: Dictionary) -> void:
 		return
 	relics.append(relic)
 	var hp_cost := int(relic.get("value2", 0))
-	if String(relic.get("effect", "")) == "sword_bonus" and hp_cost > 0:
+	if String(relic.get("rarity", "")) == "cursed" and hp_cost > 0:
 		max_hp = max(20, max_hp - hp_cost)
 		hp = min(hp, max_hp)
 

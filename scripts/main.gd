@@ -129,6 +129,9 @@ func on_fight_won() -> void:
 	var outcome := state.on_enemy_defeated()
 	if outcome == "victory":
 		finish_run(true)
+	elif state.draft_options().is_empty():
+		state.begin_next_fight()
+		show_fight()
 	else:
 		show_draft()
 

@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "scripted_first_spin": [
+    [
+      "sword",
+      "sword",
+      "sword"
+    ],
+    [
+      "sword",
+      "sword",
+      "sword"
+    ],
+    [
+      "sword",
+      "sword",
+      "sword"
+    ]
+  ],
+  "teach_lines": {
+    "first_skull": "Skulls hurt YOU when the enemy attacks. Clear them or brace with Shields.",
+    "first_relic": "Relics change every run. Hover any relic to read exactly what it does.",
+    "first_shop": "The shop sells relics, upgrades and consumables. Rerolling costs coins and gets pricier each time.",
+    "first_consumable": "Consumables are one-use tools. Click one, click a reel, then confirm."
+  }
+}

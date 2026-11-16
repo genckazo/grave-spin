@@ -37,6 +37,8 @@ var run_over: bool = false
 var victory: bool = false
 var endless_depth: int = 0
 var difficulty := "normal"
+var tutorial_active := false
+var teach_seen: Dictionary = {}
 var diff_hp := 1.0
 var diff_atk := 1.0
 var diff_reward := 1.0
@@ -82,6 +84,14 @@ func start_run(seed_value: int = 0, mode := "normal") -> void:
 	endless_depth = 0
 	logs = []
 	stats = {"spins": 0, "damage_dealt": 0, "damage_taken": 0, "healed": 0, "blocked": 0}
+	tutorial_active = false
+	teach_seen = {}
+	if MetaSave.enabled:
+		var meta := MetaSave.load_meta()
+		tutorial_active = not bool(meta.get("tutorial_done", false)) and fight_index == 0
+		if tutorial_active:
+			meta["tutorial_done"] = true
+			MetaSave.save_meta(meta)
 	if seed_value != 0:
 		rng.seed = seed_value
 	else:
@@ -172,11 +182,21 @@ func roll() -> Dictionary:
 	var weights: Dictionary = (config["weights"] as Dictionary).duplicate()
 	weights["skull"] = int(weights.get("skull", 0)) + int(enemy.get("skull_extra", 0))
 	var grid: Array = []
-	for r in range(3):
-		var row: Array = []
-		for c in range(3):
-			row.append(_pick_symbol(weights))
-		grid.append(row)
+	var scripted := false
+	if tutorial_active and spin_count == 1:
+		for row in GameData.tutorial.get("scripted_first_spin", []):
+			var copy: Array = []
+			for c in row:
+				copy.append(String(c))
+			grid.append(copy)
+		scripted = true
+		last_jackpot = true
+	else:
+		for r in range(3):
+			var row: Array = []
+			for c in range(3):
+				row.append(_pick_symbol(weights))
+			grid.append(row)
 
 	var rigged := false
 	var seventh := RelicEngine.total(self, "lucky_seventh")
@@ -202,7 +222,7 @@ func roll() -> Dictionary:
 		last_jackpot = true
 		free_spin = true
 		_log("JACKPOT! The pity timer pays out — free re-spin.", "gold")
-	return {"grid": grid, "near_miss": near_miss, "jackpot": jackpot, "rigged": rigged}
+	return {"grid": grid, "near_miss": near_miss, "jackpot": jackpot, "rigged": rigged or scripted, "scripted": scripted}
 
 
 func _apply_pity(grid: Array, near_row: int) -> bool:
@@ -304,6 +324,8 @@ func resolve(grid: Array) -> Dictionary:
 
 		total_skulls += sk
 		report["skulls"] += sk
+		if sk > 0:
+			_teach("first_skull")
 
 		var bits: Array = []
 		if sw > 0:
@@ -455,6 +477,7 @@ func choose_relic(relic: Dictionary) -> void:
 	if relic.is_empty():
 		return
 	relics.append(relic)
+	_teach("first_relic")
 	var hp_cost := int(relic.get("value2", 0))
 	if String(relic.get("rarity", "")) == "cursed" and hp_cost > 0:
 		max_hp = max(20, max_hp - hp_cost)
@@ -554,3 +577,15 @@ func _report_run() -> void:
 		"daily": false,
 	})
 	MetaSave.save_meta(meta)
+
+func _teach(key: String) -> void:
+	if teach_seen.get(key, false):
+		return
+	teach_seen[key] = true
+	var line := String(GameData.tutorial.get("teach_lines", {}).get(key, ""))
+	if line != "":
+		_log("TIP: " + line, "gold")
+
+
+func teach_line(key: String) -> String:
+	return String(GameData.tutorial.get("teach_lines", {}).get(key, ""))

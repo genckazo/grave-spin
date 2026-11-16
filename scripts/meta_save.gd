@@ -7,7 +7,7 @@ static var enabled := true
 
 
 static func load_meta() -> Dictionary:
-	var defaults := {"bone_coins": 0, "best_fights": 0, "runs": 0, "best_victory": false, "unlocks": [], "achievements": [], "stats": {}, "settings": {"language": "en", "colorblind_symbols": false, "reduced_motion": false}}
+	var defaults := {"bone_coins": 0, "best_fights": 0, "runs": 0, "best_victory": false, "unlocks": [], "achievements": [], "stats": {}, "tutorial_done": false, "settings": {"language": "en", "colorblind_symbols": false, "reduced_motion": false}}
 	if not enabled:
 		return defaults
 	var cfg := ConfigFile.new()
@@ -21,6 +21,7 @@ static func load_meta() -> Dictionary:
 		"unlocks": cfg.get_value("meta", "unlocks", []),
 		"achievements": cfg.get_value("meta", "achievements", []),
 		"stats": cfg.get_value("meta", "stats", {}),
+		"tutorial_done": bool(cfg.get_value("meta", "tutorial_done", false)),
 		"settings": cfg.get_value("meta", "settings", {"language": "en", "colorblind_symbols": false, "reduced_motion": false}),
 	}
 

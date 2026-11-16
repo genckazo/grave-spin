@@ -1,0 +1,157 @@
+{
+  "schema_version": 1,
+  "entries": {
+    "symbol:sword": {
+      "name": "Sword",
+      "text": "Sword \u2014 deals damage to the enemy, times your bet."
+    },
+    "symbol:shield": {
+      "name": "Shield",
+      "text": "Shield \u2014 gives block that absorbs the enemy's next attack."
+    },
+    "symbol:potion": {
+      "name": "Potion",
+      "text": "Potion \u2014 heals HP."
+    },
+    "symbol:coin": {
+      "name": "Coin",
+      "text": "Coin \u2014 pays coins, times your bet."
+    },
+    "symbol:skull": {
+      "name": "Skull",
+      "text": "Skull \u2014 when the enemy attacks, each skull adds damage to YOU."
+    },
+    "relic:whetstone": {
+      "name": "Whetstone",
+      "text": "Swords deal +1 damage."
+    },
+    "relic:bulwark_sigil": {
+      "name": "Bulwark Sigil",
+      "text": "Shields give +1 block each."
+    },
+    "relic:leech_flask": {
+      "name": "Leech Flask",
+      "text": "Potions heal +1 extra."
+    },
+    "relic:gilded_reel": {
+      "name": "Gilded Reel",
+      "text": "Coins pay out +1 extra each."
+    },
+    "relic:bone_ward": {
+      "name": "Bone Ward",
+      "text": "Skulls add only +1 damage instead of +2."
+    },
+    "relic:iron_frame": {
+      "name": "Iron Frame",
+      "text": "Start every fight with 4 block."
+    },
+    "relic:lucky_coin": {
+      "name": "Lucky Coin",
+      "text": "Coins pay out +1 extra each."
+    },
+    "relic:thick_hide": {
+      "name": "Thick Hide",
+      "text": "Start every fight with 3 block."
+    },
+    "relic:potion_belt": {
+      "name": "Potion Belt",
+      "text": "Potions heal +1 extra."
+    },
+    "relic:sharp_teeth": {
+      "name": "Sharp Teeth",
+      "text": "Swords deal +1 damage."
+    },
+    "relic:second_wind": {
+      "name": "Second Wind",
+      "text": "Once per run: survive lethal damage and return with 8 HP."
+    },
+    "relic:lucky_seventh": {
+      "name": "Lucky Seventh",
+      "text": "Every 7th pull rigs the reels to show at least 2 swords."
+    },
+    "relic:bloodstone": {
+      "name": "Bloodstone",
+      "text": "Gain 1 coin for each point of damage you take."
+    },
+    "relic:skull_crown": {
+      "name": "Skull Crown",
+      "text": "Each skull also deals 1 damage to the enemy."
+    },
+    "relic:gamblers_eye": {
+      "name": "Gambler's Eye",
+      "text": "The first skull each fight adds no damage."
+    },
+    "relic:deep_pockets": {
+      "name": "Deep Pockets",
+      "text": "You can carry 1 more relic."
+    },
+    "relic:vampiric_edge": {
+      "name": "Vampiric Edge",
+      "text": "Heal 1 HP when you slay an enemy."
+    },
+    "relic:grave_pact": {
+      "name": "Grave Pact",
+      "text": "Swords deal +2 damage. Max HP -8 when taken."
+    },
+    "relic:dead_mans_hand": {
+      "name": "Dead Man's Hand",
+      "text": "A payline of three swords deals +6 bonus damage."
+    },
+    "relic:house_edge": {
+      "name": "House Edge",
+      "text": "Every payout +1. Max HP -6 when taken."
+    },
+    "relic:tarnished_coin": {
+      "name": "Tarnished Coin",
+      "text": "Coins pay +2."
+    },
+    "relic:ashen_blade": {
+      "name": "Ashen Blade",
+      "text": "Swords deal +2 damage."
+    },
+    "relic:grave_moss": {
+      "name": "Grave Moss",
+      "text": "Potions heal +2."
+    },
+    "relic:loaded_reel": {
+      "name": "Loaded Reel",
+      "text": "Start each fight with 6 block."
+    },
+    "relic:pact_ledger": {
+      "name": "Pact Ledger",
+      "text": "Kills heal +2."
+    },
+    "relic:hollow_die": {
+      "name": "Hollow Die",
+      "text": "Carry 2 more relics."
+    },
+    "relic:widows_veil": {
+      "name": "Widow's Veil",
+      "text": "Skull penalty -2."
+    },
+    "relic:crown_of_thorns": {
+      "name": "Crown of Thorns",
+      "text": "Each skull also deals +2 damage."
+    },
+    "relic:jackpot_engine": {
+      "name": "Jackpot Engine",
+      "text": "Three swords on a row pay +10."
+    },
+    "relic:midas_touch": {
+      "name": "Midas Touch",
+      "text": "Damage taken pays +2 coins."
+    },
+    "enemy:skeleton": {
+      "name": "SKELETON",
+      "text": "Bone and rust. It has been waiting. Skulls on your reels add +2 to its attacks."
+    },
+    "enemy:slime": {
+      "name": "SLIME",
+      "text": "It digests hope first. Skulls on your reels add +1 to its attacks."
+    },
+    "enemy:cultist": {
+      "name": "CULTIST",
+      "text": "It has already counted your bones. Skulls on your reels add +4 to its attacks."
+    }
+  }
+}

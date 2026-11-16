@@ -15,6 +15,7 @@ func _init() -> void:
 	_test_flow()
 	_test_endless()
 	_test_unlocks()
+	_test_tutorial_tooltips()
 	_test_loc_and_settings()
 	_test_achievements()
 	_test_difficulty()
@@ -322,6 +323,64 @@ func _test_unlocks() -> void:
 	var s := _fresh()
 	_check(s.max_hp == 52, "no meta (disabled): max_hp stays 52, got %d" % s.max_hp)
 	MetaSave.enabled = true
+
+
+func _test_tutorial_tooltips() -> void:
+	GameData.ensure_loaded()
+	# tooltip coverage: every symbol, relic, enemy, consumable
+	for sym in GameState.SYMBOLS:
+		var e := GameData.tooltip("symbol:" + sym)
+		_check(not e.is_empty() and String(e.get("text", "")) != "", "tooltip for symbol %s" % sym)
+	for r in GameData.relics:
+		var e := GameData.tooltip("relic:" + String(r["id"]))
+		_check(not e.is_empty() and String(e.get("text", "")) != "", "tooltip for relic %s" % String(r["id"]))
+	for k in GameData.enemies.keys():
+		if k == "schema_version":
+			continue
+		var e := GameData.tooltip("enemy:" + k)
+		_check(not e.is_empty(), "tooltip for enemy %s" % k)
+	# tutorial flag: fresh meta -> tutorial active on fight 1 only
+	var old_enabled := MetaSave.enabled
+	MetaSave.enabled = true
+	var old_path := MetaSave.path
+	MetaSave.path = "user://grave_spin_tut_test.cfg"
+	MetaSave.save_meta({"bone_coins": 0, "best_fights": 0, "runs": 0, "best_victory": false, "unlocks": [], "achievements": [], "stats": {}, "tutorial_done": false, "settings": {}})
+	var t := GameState.new()
+	t.start_run(42)
+	_check(t.tutorial_active, "tutorial active on first run when flag unset")
+	var r1: Dictionary = t.roll()
+	_check(bool(r1.get("scripted", false)), "first spin is scripted")
+	var all_swords := true
+	for row in r1["grid"]:
+		for c in row:
+			if c != "sword":
+				all_swords = false
+	_check(all_swords, "scripted grid is swords")
+	var rep: Dictionary = t.resolve(r1["grid"])
+	_check(bool(rep.get("enemy_dead", false)), "scripted first spin kills fight 1, got %d dmg vs hp %d" % [int(rep.get("damage", 0)), t.enemy_hp + int(rep.get("damage", 0))])
+	var t2 := GameState.new()
+	t2.start_run(42)
+	_check(not t2.tutorial_active, "tutorial flag saved -> next run not tutorial")
+	var r2: Dictionary = t2.roll()
+	_check(not bool(r2.get("scripted", false)), "second run first spin not scripted")
+	# teach lines
+	_check(t.teach_line("first_skull") != "", "teach line exists for first_skull")
+	var g := GameState.new()
+	g.start_run(7)
+	MetaSave.enabled = true
+	var meta2 := MetaSave.load_meta()
+	meta2["tutorial_done"] = true
+	MetaSave.save_meta(meta2)
+	g.tutorial_active = false
+	var grid2 := [["skull","coin","shield"],["sword","potion","coin"],["sword","sword","coin"]]
+	g.resolve(grid2)
+	_check(g.teach_seen.get("first_skull", false), "first skull encounter teaches")
+	var opts := g.draft_options()
+	if opts.size() > 0:
+		g.choose_relic(opts[0])
+	_check(g.teach_seen.get("first_relic", false), "first relic pick teaches")
+	MetaSave.path = old_path
+	MetaSave.enabled = old_enabled
 
 
 func _test_loc_and_settings() -> void:

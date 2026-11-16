@@ -9,6 +9,8 @@ static var enemies: Dictionary = {}
 static var fights: Array = []
 static var unlocks: Array = []
 static var achievements: Array = []
+static var tutorial: Dictionary = {}
+static var tooltips: Dictionary = {}
 const SCHEMA_VERSION := 1
 
 static func ensure_loaded() -> void:
@@ -24,6 +26,9 @@ static func ensure_loaded() -> void:
 	unlocks = unlock_data if unlock_data is Array else []
 	var ach_data = _read_json("res://data/achievements.json")
 	achievements = ach_data if ach_data is Array else []
+	tutorial = _read_json("res://data/tutorial.json")
+	var tt_data = _read_json("res://data/tooltips.json")
+	tooltips = tt_data.get("entries", {}) if tt_data is Dictionary else {}
 
 static func _check_schema(path: String, parsed: Variant) -> void:
 	var v = null
@@ -57,3 +62,6 @@ static func unlock_by_id(id: String) -> Dictionary:
 		if String(u.get("id", "")) == id:
 			return u
 	return {}
+
+static func tooltip(key: String) -> Dictionary:
+	return tooltips.get(key, {})

@@ -55,6 +55,13 @@ var pity_label: Label
 var pause_button: Button
 var pause_overlay: Control
 var resume_button: Button
+var boss_rule_label: Label
+var cell_buttons: Array = []
+var consumable_icons: Array = []
+var targeting := -1
+var pending_cell := {}
+var confirm_overlay: Control = null
+var enemy_hover: Button
 
 var _shown_hp := 0
 var _shown_enemy_hp := 0
@@ -197,6 +204,22 @@ func _build_machine() -> void:
 		hline.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		shake_root.add_child(hline)
 
+	# Invisible hit areas over the 3x3 grid: hover tooltips + consumable targeting.
+	for r in range(3):
+		for c in range(3):
+			var cell := Button.new()
+			cell.flat = true
+			cell.focus_mode = Control.FOCUS_NONE
+			cell.position = Vector2(REELS_X + c * CELL, REELS_Y + r * CELL)
+			cell.size = Vector2(CELL, CELL)
+			var empty := StyleBoxEmpty.new()
+			cell.add_theme_stylebox_override("normal", empty)
+			cell.add_theme_stylebox_override("hover", empty)
+			cell.add_theme_stylebox_override("pressed", empty)
+			cell.pressed.connect(_on_cell_pressed.bind(r, c))
+			shake_root.add_child(cell)
+			cell_buttons.append({"button": cell, "row": r, "col": c})
+
 	var marquee := UI.centered(UI.shadowed(UI.label("GRAVE SPIN", 11, UI.GOLD_HI, "header_bold")))
 	marquee.position = Vector2(14, 46)
 	marquee.size = Vector2(200, 15)
@@ -246,6 +269,21 @@ func _build_enemy_panel() -> void:
 	tag.position = Vector2(12, 6)
 	tag.size = Vector2(60, 10)
 	panel.add_child(tag)
+
+	boss_rule_label = UI.shadowed(UI.label("", 7, UI.PURPLE, "header"))
+	boss_rule_label.position = Vector2(196, 6)
+	boss_rule_label.size = Vector2(136, 10)
+	boss_rule_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	panel.add_child(boss_rule_label)
+
+	enemy_hover = Button.new()
+	enemy_hover.flat = true
+	enemy_hover.focus_mode = Control.FOCUS_NONE
+	enemy_hover.position = Vector2(8, 8)
+	enemy_hover.size = Vector2(104, 140)
+	enemy_hover.tooltip_text = ""
+	enemy_hover.name = "EnemyHover"
+	panel.add_child(enemy_hover)
 
 	var shadow := UI.texture("res://assets/generated/shadow.png", 104, 20)
 	shadow.position = Vector2(8, 108)
@@ -413,15 +451,15 @@ func _build_pause_overlay() -> void:
 	pause_overlay.add_child(dim)
 
 	var backing := ColorRect.new()
-	backing.position = Vector2(178, 82)
-	backing.size = Vector2(284, 194)
+	backing.position = Vector2(178, 72)
+	backing.size = Vector2(284, 224)
 	backing.color = Color(0.02, 0.015, 0.03, 0.98)
 	backing.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	pause_overlay.add_child(backing)
 
 	var panel := UI.panel()
-	panel.position = Vector2(180, 84)
-	panel.size = Vector2(280, 190)
+	panel.position = Vector2(180, 74)
+	panel.size = Vector2(280, 220)
 	pause_overlay.add_child(panel)
 
 	var title := UI.centered(UI.shadowed(UI.label("PAUSED", 32, UI.GOLD, "title")))
@@ -439,8 +477,13 @@ func _build_pause_overlay() -> void:
 	resume_button.pressed.connect(_resume)
 	panel.add_child(resume_button)
 
+	var skip_tut := UI.button("SKIP TUTORIAL", 9, 200, 28)
+	skip_tut.position = Vector2(40, 126)
+	skip_tut.pressed.connect(_skip_tutorial)
+	panel.add_child(skip_tut)
+
 	var title_btn := UI.button("TITLE SCREEN", 9, 200, 32)
-	title_btn.position = Vector2(40, 126)
+	title_btn.position = Vector2(40, 160)
 	title_btn.pressed.connect(_to_title)
 	panel.add_child(title_btn)
 
@@ -467,6 +510,13 @@ func _refresh_all() -> void:
 	enemy_name.text = String(state.enemy["name"])
 	enemy_type.text = String(state.enemy["label"])
 	enemy_blurb.text = "%s\n%s" % [String(state.enemy["blurb"]), String(state.enemy["curse"])]
+	_refresh_boss_rule()
+	_refresh_consumables()
+	if not state.current_grid.is_empty():
+		_update_cell_tooltips(state.current_grid)
+	if enemy_hover != null:
+		var tt := GameData.tooltip("enemy:" + String(state.enemy["type"]))
+		enemy_hover.tooltip_text = "%s\n%s\n%s" % [String(state.enemy["name"]), String(tt.get("text", state.enemy["blurb"])), String(state.enemy["curse"])]
 	enemy_hp_text.text = "HP %d / %d" % [state.enemy_hp, enemy_max_hp]
 	UI.set_bar(enemy_hp_bar, float(state.enemy_hp) / float(enemy_max_hp))
 	_refresh_enemy_block()
@@ -597,6 +647,7 @@ func _do_pull() -> void:
 
 	var roll: Dictionary = state.roll()
 	var grid: Array = roll["grid"]
+	_update_cell_tooltips(grid)
 	var near_row := int(roll["near_miss"])
 	if bool(roll.get("jackpot", false)):
 		_jackpot()
@@ -610,8 +661,8 @@ func _do_pull() -> void:
 	await _spin_reels(grid)
 
 	var acting_intent := state.get_intent()
-	var report: Dictionary = state.resolve(grid)
-	await _reveal_rows(report)
+	var report: Dictionary = state.resolve(state.current_grid if not state.current_grid.is_empty() else grid)
+	await _reveal_sequence(report)
 	if not is_inside_tree():
 		return
 
@@ -691,6 +742,7 @@ func _on_reel_stop(c: int, grid: Array) -> void:
 		icons[i].texture = _symbol_texture(_random_symbol())
 	for r in range(3):
 		icons[r].texture = _symbol_texture(String(grid[r][c]))
+	_update_cell_tooltips(grid)
 	Sfx.play("reelstop", 0.9 + c * 0.08, -4.0)
 	_dust_puff(Vector2(REELS_X + c * CELL + 28, REELS_Y + 166))
 
@@ -703,6 +755,7 @@ func _set_strip_final(c: int, grid: Array) -> void:
 	for r in range(3):
 		icons[r].texture = _symbol_texture(String(grid[r][c]))
 	reel["strip"].position.y = 0.0
+	_update_cell_tooltips(grid)
 
 
 func _animate_lever() -> void:
@@ -756,103 +809,93 @@ func _near_miss(row: int) -> void:
 	Engine.time_scale = 1.0
 
 
-func _reveal_rows(report: Dictionary) -> void:
-	var rows: Array = report.get("rows", [])
-	for row_data in rows:
-		if not is_inside_tree():
-			return
-		var r := int(row_data["row"])
-		_display_enemy_hp(max(0, _shown_enemy_hp - int(row_data["damage"])))
-		_display_hp(min(state.max_hp, _shown_hp + int(row_data["heal"])))
-		_display_coins(_shown_coins + int(row_data["coins_gain"]))
-		_display_block(_shown_block + int(row_data["block"]))
+func _reveal_sequence(report: Dictionary) -> void:
+	## Symbols resolve one at a time (left-to-right), then relics in slot order,
+	## each with a running tally and rising pitch. Total <= 2.5s; holding the
+	## mouse button or fast mode skips straight to the final numbers.
+	var steps: Array = report.get("sequence", [])
+	var tally_label := UI.shadowed(UI.label("", 7, UI.GOLD, "header"))
+	tally_label.position = Vector2(14, 268)
+	tally_label.size = Vector2(210, 10)
+	shake_root.add_child(tally_label)
+	var fast: bool = main.fast or bool(report.get("fast", false))
+	if not fast and not steps.is_empty():
+		var per: float = minf(0.16, 2.2 / float(steps.size()))
+		var pitch := 0.75
+		for step in steps:
+			if not is_inside_tree():
+				return
+			if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+				break
+			var t: Dictionary = step.get("tally", {})
+			tally_label.text = "DMG %d  BLK %d  HEAL %d  COINS %d  SELF %d" % [
+				int(t.get("damage", 0)), int(t.get("block", 0)), int(t.get("heal", 0)),
+				int(t.get("coins", 0)), int(t.get("self_damage", 0))]
+			var kind := String(step.get("kind", ""))
+			if kind == "symbol":
+				var r := int(step.get("row", 0))
+				var c := int(step.get("col", 0))
+				_pop_cell(r, c)
+				_float_text(String(step.get("desc", "")), Vector2(24, REELS_Y + r * CELL + 18), _symbol_color(String(step.get("symbol", ""))), 7, 180)
+				Sfx.tick(pitch)
+			elif kind == "relic":
+				_pulse_relic(int(step.get("slot", -1)))
+				_float_text("%s: %s" % [String(step.get("name", "")), String(step.get("desc", ""))], Vector2(24, 250), UI.GOLD, 7, 210)
+				Sfx.play("card", pitch, -6.0)
+			else:
+				_float_text(String(step.get("desc", "")), Vector2(14, 120), UI.GOLD_HI, 9, 200)
+				Sfx.play("bell", pitch, -4.0)
+			pitch += 0.05
+			await _wait(per)
+	_snap_after_resolve(report)
+	tally_label.queue_free()
 
-		var highlight := _row_highlight(r)
-		if highlight != null:
-			highlight.modulate.a = 0.0
-			var in_tw := create_tween()
-			in_tw.tween_property(highlight, "modulate:a", 1.0, 0.08)
 
-		var summary := _row_summary(row_data)
-		if summary != "":
-			var col := UI.GOLD_HI
-			if int(row_data["skulls"]) > 0 and int(row_data["swords"]) == 0:
-				col = UI.PURPLE
-			elif int(row_data["heal"]) > 0:
-				col = UI.GREEN
-			_float_text(summary, Vector2(24, REELS_Y + r * CELL + 18), col, 7, 180)
-
-		var sound := _row_sound(row_data)
-		if sound != "":
-			Sfx.play(sound, 1.0, -3.0)
-		if int(row_data["skulls"]) > 0:
-			_shake(1.2 + 0.3 * int(row_data["skulls"]), 0.12)
-			if not main.fast:
-				Sfx.play("skull", 0.8, -10.0)
-		if int(row_data["coins_gain"]) > 0:
-			_coin_burst(Vector2(114, 278), mini(6 + int(row_data["coins_gain"]) * 2, 22))
-
-		await _wait(0.34)
-		if highlight != null:
-			var out_tw := create_tween()
-			out_tw.tween_property(highlight, "modulate:a", 0.0, 0.18)
-			out_tw.tween_callback(highlight.queue_free)
-
+func _snap_after_resolve(report: Dictionary) -> void:
+	_display_enemy_hp(state.enemy_hp, false)
+	_display_hp(state.hp, false)
+	_display_coins(state.coins)
+	_display_block(state.block)
 	_shown_enemy_block = 0
 	_refresh_enemy_block()
-	await _wait(0.15)
 
 
-func _row_highlight(row: int) -> Panel:
-	if main.fast:
-		return null
-	var p := Panel.new()
-	p.position = Vector2(REELS_X, REELS_Y + row * CELL)
-	p.size = Vector2(CELL * 3, CELL)
-	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.95, 0.72, 0.25, 0.10)
-	sb.border_color = Color(0.95, 0.72, 0.25, 0.72)
-	sb.border_width_left = 1
-	sb.border_width_right = 1
-	sb.border_width_top = 1
-	sb.border_width_bottom = 1
-	p.add_theme_stylebox_override("panel", sb)
-	shake_root.add_child(p)
-	return p
+func _pop_cell(r: int, c: int) -> void:
+	if main.fast or c < 0 or c >= reels.size():
+		return
+	var icons: Array = reels[c]["icons"]
+	if r < 0 or r >= icons.size():
+		return
+	var icon: TextureRect = icons[r]
+	icon.pivot_offset = Vector2(24, 24)
+	var tw := create_tween()
+	tw.tween_property(icon, "scale", Vector2(1.3, 1.3), 0.07).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(icon, "scale", Vector2(1, 1), 0.12)
 
 
-func _row_summary(row_data: Dictionary) -> String:
-	var bits: Array = []
-	var dmg := int(row_data["damage"])
-	var absorbed := int(row_data["absorbed"])
-	if dmg > 0:
-		bits.append("-%d HP" % dmg)
-	if absorbed > 0:
-		bits.append("%d ABSORBED" % absorbed)
-	if int(row_data["block"]) > 0:
-		bits.append("+%d BLOCK" % int(row_data["block"]))
-	if int(row_data["heal"]) > 0:
-		bits.append("+%d HP" % int(row_data["heal"]))
-	if int(row_data["coins_gain"]) > 0:
-		bits.append("+%d COINS" % int(row_data["coins_gain"]))
-	if int(row_data["skulls"]) > 0:
-		bits.append("%d SKULL%s" % [int(row_data["skulls"]), "" if int(row_data["skulls"]) == 1 else "S"])
-	return "  ".join(bits)
+func _pulse_relic(slot: int) -> void:
+	if main.fast or slot < 0 or slot >= relic_icons.size():
+		return
+	var icon: Control = relic_icons[slot]
+	if not (icon is TextureRect):
+		return
+	var tw := create_tween()
+	tw.tween_property(icon, "modulate", Color(1.6, 1.4, 1.0), 0.08)
+	tw.tween_property(icon, "modulate", Color.WHITE, 0.18)
 
 
-func _row_sound(row_data: Dictionary) -> String:
-	if int(row_data["skulls"]) > 0:
-		return "skull"
-	if int(row_data["swords"]) > 0:
-		return "sword"
-	if int(row_data["coins_gain"]) > 0:
-		return "coin"
-	if int(row_data["shields"]) > 0:
-		return "block"
-	if int(row_data["potions"]) > 0:
-		return "bell"
-	return ""
+func _symbol_color(sym: String) -> Color:
+	if sym == "sword":
+		return UI.GOLD_HI
+	if sym == "shield":
+		return UI.BLUE
+	if sym == "potion":
+		return UI.GREEN
+	if sym == "coin":
+		return UI.GOLD
+	if sym == "skull":
+		return UI.RED
+	return UI.BONE
 
 
 func _enemy_turn(report: Dictionary, intent: Dictionary) -> void:
@@ -1064,6 +1107,181 @@ func _symbol_texture(symbol: String) -> Texture2D:
 func _random_symbol() -> String:
 	var bag := ["sword", "sword", "shield", "shield", "coin", "potion", "skull"]
 	return String(bag.pick_random())
+
+
+
+# ------------------------------------------------------- tooltips / boss rule
+
+func _refresh_boss_rule() -> void:
+	if boss_rule_label == null:
+		return
+	if state.boss_rule != "":
+		var rule := GameData.boss_rule_by_id(state.boss_rule)
+		boss_rule_label.text = "RULE: %s" % String(rule.get("name", state.boss_rule))
+		boss_rule_label.tooltip_text = String(rule.get("desc", ""))
+	else:
+		boss_rule_label.text = ""
+		boss_rule_label.tooltip_text = ""
+
+
+func _update_cell_tooltips(grid: Array) -> void:
+	for entry in cell_buttons:
+		var r := int(entry["row"])
+		var c := int(entry["col"])
+		if r < grid.size() and c < grid[r].size():
+			var sym := String(grid[r][c])
+			var tt := GameData.tooltip("symbol:" + sym)
+			if not tt.is_empty():
+				entry["button"].tooltip_text = "%s\n%s" % [String(tt.get("name", sym)), String(tt.get("text", ""))]
+			else:
+				entry["button"].tooltip_text = sym
+
+
+# ------------------------------------------------------------- consumables
+
+func _refresh_consumables() -> void:
+	for icon in consumable_icons:
+		icon.queue_free()
+	consumable_icons.clear()
+	for i in range(state.consumables.size()):
+		var id := String(state.consumables[i])
+		var c := GameData.consumable_by_id(id)
+		var icon := UI.icon("res://assets/generated/potion_icon.png", 18)
+		icon.position = Vector2(438 + i * 22, 8)
+		icon.mouse_filter = Control.MOUSE_FILTER_PASS
+		var tt := GameData.tooltip("consumable:" + id)
+		icon.tooltip_text = "%s — %s" % [String(c.get("name", id)), String(tt.get("text", c.get("desc", "")))]
+		shake_root.add_child(icon)
+		consumable_icons.append(icon)
+		var hit := Button.new()
+		hit.flat = true
+		hit.focus_mode = Control.FOCUS_NONE
+		hit.position = Vector2(436 + i * 22, 5)
+		hit.size = Vector2(22, 24)
+		hit.tooltip_text = icon.tooltip_text
+		hit.pressed.connect(_on_consumable_clicked.bind(i))
+		shake_root.add_child(hit)
+		consumable_icons.append(hit)
+
+
+func _on_consumable_clicked(index: int) -> void:
+	if busy or paused or state == null or state.run_over or state.current_grid.is_empty():
+		return
+	if targeting >= 0:
+		targeting = -1
+		_close_confirm()
+		return
+	targeting = index
+	Sfx.play("click")
+
+
+func _on_cell_pressed(r: int, c: int) -> void:
+	if busy or paused or state == null or state.run_over or targeting < 0:
+		return
+	pending_cell = {"row": r, "col": c}
+	var cons := GameData.consumable_by_id(String(state.consumables[targeting]))
+	var effect := String(cons.get("effect", ""))
+	if effect == "replace_symbol" or effect == "level_symbol":
+		_show_confirm(true)
+	else:
+		_show_confirm(false)
+
+
+func _show_confirm(with_symbols: bool) -> void:
+	_close_confirm()
+	confirm_overlay = Control.new()
+	confirm_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	confirm_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	add_child(confirm_overlay)
+	var dim := ColorRect.new()
+	dim.color = Color(0.02, 0.015, 0.03, 0.7)
+	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	confirm_overlay.add_child(dim)
+	var panel := UI.panel()
+	panel.position = Vector2(200, 120)
+	panel.size = Vector2(240, 110 if with_symbols else 84)
+	confirm_overlay.add_child(panel)
+	var id := String(state.consumables[targeting])
+	var c := GameData.consumable_by_id(id)
+	var title := UI.centered(UI.shadowed(UI.label(String(c.get("name", id)), 9, UI.GOLD, "header")))
+	title.position = Vector2(0, 8)
+	title.size = Vector2(240, 14)
+	panel.add_child(title)
+	var sub := UI.centered(UI.label("Choose a symbol:" if with_symbols else "Apply to the selected reel slot?", 7, UI.MUTED, "body"))
+	sub.position = Vector2(0, 24)
+	sub.size = Vector2(240, 10)
+	panel.add_child(sub)
+	var sym_row_y := 40
+	if with_symbols:
+		for i in range(GameState.SYMBOLS.size()):
+			var sym := String(GameState.SYMBOLS[i])
+			var b := UI.button(sym.to_upper(), 6, 40, 18)
+			b.position = Vector2(14 + i * 44, sym_row_y)
+			b.pressed.connect(_confirm_with_symbol.bind(sym))
+			panel.add_child(b)
+	var ok := UI.button("CONFIRM", 8, 70, 24)
+	ok.position = Vector2(30, panel.size.y - 32)
+	ok.pressed.connect(_confirm_use)
+	panel.add_child(ok)
+	var undo := UI.button("UNDO", 8, 70, 24)
+	undo.position = Vector2(140, panel.size.y - 32)
+	undo.pressed.connect(_cancel_targeting)
+	panel.add_child(undo)
+
+
+func _confirm_with_symbol(sym: String) -> void:
+	_pending_symbol = sym
+	_confirm_use()
+
+
+var _pending_symbol := ""
+
+
+func _confirm_use() -> void:
+	if targeting < 0 or targeting >= state.consumables.size():
+		_cancel_targeting()
+		return
+	var id := String(state.consumables[targeting])
+	var c := GameData.consumable_by_id(id)
+	var target := pending_cell.duplicate()
+	var effect := String(c.get("effect", ""))
+	if effect == "replace_symbol":
+		target["symbol"] = _pending_symbol if _pending_symbol != "" else "sword"
+	elif effect == "level_symbol":
+		target = {"symbol": _pending_symbol if _pending_symbol != "" else "sword"}
+	var ok := state.use_consumable(targeting, target)
+	Sfx.play("card" if ok else "click", 1.0, -3.0)
+	targeting = -1
+	_pending_symbol = ""
+	_close_confirm()
+	if ok and not state.current_grid.is_empty():
+		for col in range(3):
+			_set_strip_final(col, state.current_grid)
+		_update_cell_tooltips(state.current_grid)
+	_refresh_consumables()
+	_refresh_log()
+
+
+func _cancel_targeting() -> void:
+	targeting = -1
+	_pending_symbol = ""
+	_close_confirm()
+
+
+func _close_confirm() -> void:
+	if confirm_overlay != null:
+		confirm_overlay.queue_free()
+		confirm_overlay = null
+
+
+func _skip_tutorial() -> void:
+	state.tutorial_active = false
+	if MetaSave.enabled:
+		var meta := MetaSave.load_meta()
+		meta["tutorial_done"] = true
+		MetaSave.save_meta(meta)
+	Sfx.play("click")
+	_resume()
 
 
 # ------------------------------------------------------------------------- pause

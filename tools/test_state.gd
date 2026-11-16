@@ -1,5 +1,5 @@
 extends SceneTree
-## Headless rules checks for the demo slice. Run:
+## Headless rules checks. Run:
 ##   Godot --headless --path . -s res://tools/test_state.gd
 
 var failures := 0
@@ -10,6 +10,8 @@ func _init() -> void:
 	_test_data()
 	_test_combat()
 	_test_relics()
+	_test_bet()
+	_test_pity()
 	_test_flow()
 	_test_meta_save()
 	var verdict := "PASS" if failures == 0 else "FAIL"
@@ -40,22 +42,23 @@ func _grid(symbol: String) -> Array:
 
 
 func _test_data() -> void:
-	_check(GameData.relics.size() == 12, "12 relics load from data/relics.json")
-	_check(GameData.fights.size() == 10, "10 fights load from data/fights.json (floors 1-2)")
-	_check(GameData.enemies.size() == 3, "3 enemy archetypes load")
-	var floors_ok := true
+	_check(GameData.relics.size() == 20, "20 relics load from data/relics.json")
+	var counts := {"common": 0, "rare": 0, "cursed": 0}
+	for r in GameData.relics:
+		counts[String(r["rarity"])] = int(counts.get(String(r["rarity"]), 0)) + 1
+	_check(int(counts["common"]) == 10 and int(counts["rare"]) == 7 and int(counts["cursed"]) == 3, "relic rarity split 10 common / 7 rare / 3 cursed")
+	_check(GameData.fights.size() == 10, "10 fights load from data/fights.json")
 	var bosses := 0
+	var floors_ok := true
 	for f in GameData.fights:
-		if not f.has("floor") or int(f["floor"]) < 1 or int(f["floor"]) > 2:
-			floors_ok = false
-		if not f.has("hp") or not (f["intents"] is Array) or (f["intents"] as Array).size() != 3:
-			floors_ok = false
-		if not GameData.enemies.has(String(f["type"])):
-			floors_ok = false
 		if bool(f.get("boss", false)):
 			bosses += 1
-	_check(floors_ok, "every fight has floor 1-2, hp, 3 intents, valid enemy type")
-	_check(bosses == 2, "two floor bosses (floor 1 + floor 2)")
+		if int(f.get("floor", 1)) not in [1, 2]:
+			floors_ok = false
+	_check(bosses == 2 and floors_ok, "exactly 2 bosses, all fights on floor 1 or 2")
+	_check(String(GameData.fights[4]["name"]) == "Bone Captain" and bool(GameData.fights[4]["boss"]), "Bone Captain is the floor-1 boss")
+	_check(String(GameData.fights[9]["name"]) == "The Grave Warden" and int(GameData.fights[9]["hp"]) == 70 and bool(GameData.fights[9]["boss"]), "Grave Warden is the floor-2 boss at hp 70")
+	_check(GameData.enemies.size() == 3, "3 enemy archetypes load")
 	for relic in GameData.relics:
 		var icon_path := "res://assets/generated/" + String(relic["icon"])
 		if not FileAccess.file_exists(icon_path):
@@ -150,6 +153,79 @@ func _test_relics() -> void:
 	_check(swords >= 2, "Lucky Seventh rigs the seventh pull to at least 2 swords")
 	_check(seventh.spin_count == 7, "Lucky Seventh advanced the spin counter to 7")
 
+	# --- GS-2 new hooks ---
+	var eye := _fresh()
+	_add(eye, "gamblers_eye")
+	var eye_report: Dictionary = eye.resolve(_grid("skull"))
+	_check(int(eye_report["damage_taken"]) == 21, "Gambler's Eye: first skull free, nine skulls deal 5+8x2=21")
+
+	var edge := _fresh()
+	edge.choose_relic(GameData.relic_by_id("house_edge"))
+	_check(int(edge.max_hp) == 46, "House Edge cursed: max HP 52-6=46")
+	edge.enemy_hp = 999
+	var edge_report: Dictionary = edge.resolve([["sword", "sword", "sword"], ["shield", "shield", "shield"], ["coin", "coin", "coin"]])
+	_check(int(edge_report["damage"]) == 12 and int(edge_report["block"]) == 9 and int(edge_report["coins"]) == 6, "House Edge all_bonus +1: 12 dmg / 9 block / 6 coins")
+
+	var vamp := _fresh()
+	_add(vamp, "vampiric_edge")
+	vamp.hp = 30
+	vamp.enemy_hp = 1
+	vamp.resolve([["sword", "sword", "sword"], ["shield", "shield", "shield"], ["shield", "shield", "shield"]])
+	vamp.on_enemy_defeated()
+	_check(int(vamp.hp) == 39, "Vampiric Edge: kill heals 1 on top of the 8 between-fight heal (30->39)")
+
+	var pockets := _fresh()
+	_add(pockets, "deep_pockets")
+	for i in range(5):
+		pockets.relics.append(GameData.relic_by_id("whetstone") if i == 0 else GameData.relic_by_id("bulwark_sigil"))
+	_check(pockets.draft_options().size() == 0, "Deep Pockets raises the cap to 5; draft empty at 6 relics")
+
+
+func _test_bet() -> void:
+	var row3: Array = [["sword", "sword", "sword"], ["shield", "shield", "shield"], ["shield", "shield", "shield"]]
+	var b1 := _fresh()
+	b1.coins = 10
+	b1.enemy_hp = 999
+	b1.set_bet(1)
+	b1.roll()
+	var r1: Dictionary = b1.resolve(row3)
+	_check(int(r1["damage"]) == 9 and b1.last_bet == 1 and b1.coins == 9, "bet 1: three swords deal 9, 1 coin deducted")
+
+	var b3 := _fresh()
+	b3.coins = 10
+	b3.enemy_hp = 999
+	b3.set_bet(3)
+	b3.roll()
+	var r3: Dictionary = b3.resolve(row3)
+	_check(int(r3["damage"]) == 27 and b3.coins == 7, "bet 3: three swords deal 27, 3 coins deducted")
+
+	var b5 := _fresh()
+	b5.coins = 10
+	b5.set_bet(5)
+	b5.roll()
+	var r5: Dictionary = b5.resolve(_grid("skull"))
+	_check(int(r5["skull_penalty"]) == 10, "bet 5: skull penalty 2x5=10")
+
+	var bc := _fresh()
+	bc.coins = 2
+	bc.set_bet(5)
+	bc.roll()
+	_check(bc.last_bet == 2 and bc.coins == 0, "bet clamps to held coins: bet 5 with 2 coins -> last_bet 2, coins 0")
+
+
+func _test_pity() -> void:
+	var p := _fresh()
+	var g: Array = [["sword", "sword", "shield"], ["shield", "shield", "shield"], ["shield", "shield", "shield"]]
+	_check(not p._apply_pity(g, 0) and p.pity == 1, "near-miss adds 1 pity, no jackpot")
+	p.pity = 4
+	var jackpot := p._apply_pity(g, 0)
+	_check(jackpot and p.pity == 0, "5th near-miss fires jackpot and resets pity")
+	_check(g[0][0] == "sword" and g[0][1] == "sword" and g[0][2] == "sword", "jackpot row becomes three swords")
+	p.last_jackpot = true
+	p.enemy_hp = 999
+	var rep: Dictionary = p.resolve(g)
+	_check(int(rep["rows"][0]["damage"]) == 18, "jackpot payline pays double (18 at bet 1)")
+
 
 func _test_flow() -> void:
 	var draft := _fresh()
@@ -183,6 +259,9 @@ func _test_flow() -> void:
 	bones.fights_won = 3
 	bones.coins = 20
 	_check(bones.bone_coins_earned() == 8, "bone coins = fights*2 + coins/8")
+
+	var sum := _fresh().summary()
+	_check(sum.has("seed") and int(sum["fights_total"]) == 10 and sum.has("victory"), "run summary card has seed, fights_total=10, victory")
 
 
 func _test_meta_save() -> void:

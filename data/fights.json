@@ -5,9 +5,18 @@
     "floor": 1,
     "hp": 30,
     "intents": [
-      {"type": "attack", "value": 5},
-      {"type": "attack", "value": 6},
-      {"type": "heavy", "value": 9}
+      {
+        "type": "attack",
+        "value": 5
+      },
+      {
+        "type": "attack",
+        "value": 6
+      },
+      {
+        "type": "heavy",
+        "value": 9
+      }
     ],
     "intro": "A skeleton drags itself upright. The machine hums."
   },
@@ -17,9 +26,18 @@
     "floor": 1,
     "hp": 34,
     "intents": [
-      {"type": "attack", "value": 6},
-      {"type": "defend", "value": 6},
-      {"type": "attack", "value": 8}
+      {
+        "type": "attack",
+        "value": 6
+      },
+      {
+        "type": "defend",
+        "value": 6
+      },
+      {
+        "type": "attack",
+        "value": 8
+      }
     ],
     "intro": "Something wet settles into the reels."
   },
@@ -29,9 +47,18 @@
     "floor": 1,
     "hp": 40,
     "intents": [
-      {"type": "attack", "value": 7},
-      {"type": "buff", "value": 2},
-      {"type": "heavy", "value": 12}
+      {
+        "type": "attack",
+        "value": 7
+      },
+      {
+        "type": "buff",
+        "value": 2
+      },
+      {
+        "type": "heavy",
+        "value": 12
+      }
     ],
     "intro": "A hooded shape speaks a word you almost know."
   },
@@ -41,9 +68,18 @@
     "floor": 1,
     "hp": 38,
     "intents": [
-      {"type": "attack", "value": 6},
-      {"type": "defend", "value": 5},
-      {"type": "heavy", "value": 9}
+      {
+        "type": "attack",
+        "value": 6
+      },
+      {
+        "type": "defend",
+        "value": 5
+      },
+      {
+        "type": "heavy",
+        "value": 9
+      }
     ],
     "intro": "The floor opens like a mouth."
   },
@@ -54,9 +90,18 @@
     "boss": true,
     "hp": 50,
     "intents": [
-      {"type": "attack", "value": 8},
-      {"type": "attack", "value": 9},
-      {"type": "heavy", "value": 13}
+      {
+        "type": "attack",
+        "value": 8
+      },
+      {
+        "type": "attack",
+        "value": 9
+      },
+      {
+        "type": "heavy",
+        "value": 13
+      }
     ],
     "intro": "The floor is thick with the last crew."
   },
@@ -66,9 +111,18 @@
     "floor": 2,
     "hp": 55,
     "intents": [
-      {"type": "attack", "value": 8},
-      {"type": "attack", "value": 9},
-      {"type": "heavy", "value": 13}
+      {
+        "type": "attack",
+        "value": 8
+      },
+      {
+        "type": "attack",
+        "value": 9
+      },
+      {
+        "type": "heavy",
+        "value": 13
+      }
     ],
     "intro": "It has been looting the dead for centuries."
   },
@@ -78,9 +132,18 @@
     "floor": 2,
     "hp": 58,
     "intents": [
-      {"type": "attack", "value": 9},
-      {"type": "defend", "value": 7},
-      {"type": "attack", "value": 10}
+      {
+        "type": "attack",
+        "value": 9
+      },
+      {
+        "type": "defend",
+        "value": 7
+      },
+      {
+        "type": "attack",
+        "value": 10
+      }
     ],
     "intro": "The lower dark is hungrier."
   },
@@ -90,9 +153,18 @@
     "floor": 2,
     "hp": 60,
     "intents": [
-      {"type": "attack", "value": 9},
-      {"type": "buff", "value": 3},
-      {"type": "heavy", "value": 14}
+      {
+        "type": "attack",
+        "value": 9
+      },
+      {
+        "type": "buff",
+        "value": 3
+      },
+      {
+        "type": "heavy",
+        "value": 14
+      }
     ],
     "intro": "It prays to the machine. The machine listens."
   },
@@ -102,9 +174,18 @@
     "floor": 2,
     "hp": 62,
     "intents": [
-      {"type": "attack", "value": 10},
-      {"type": "attack", "value": 10},
-      {"type": "heavy", "value": 14}
+      {
+        "type": "attack",
+        "value": 10
+      },
+      {
+        "type": "attack",
+        "value": 10
+      },
+      {
+        "type": "heavy",
+        "value": 14
+      }
     ],
     "intro": "They come in waves now."
   },
@@ -115,10 +196,125 @@
     "boss": true,
     "hp": 70,
     "intents": [
-      {"type": "attack", "value": 10},
-      {"type": "buff", "value": 3},
-      {"type": "heavy", "value": 16}
+      {
+        "type": "attack",
+        "value": 10
+      },
+      {
+        "type": "buff",
+        "value": 3
+      },
+      {
+        "type": "heavy",
+        "value": 16
+      }
     ],
     "intro": "The machine was built to feed it. Tonight it eats."
+  },
+  {
+    "name": "Ash Revenant",
+    "type": "skeleton",
+    "floor": 3,
+    "hp": 38,
+    "intents": [
+      {
+        "type": "attack",
+        "value": 8
+      },
+      {
+        "type": "attack",
+        "value": 9
+      },
+      {
+        "type": "heavy",
+        "value": 13
+      }
+    ],
+    "intro": "It remembers burning."
+  },
+  {
+    "name": "Cinder Slime",
+    "type": "slime",
+    "floor": 3,
+    "hp": 42,
+    "intents": [
+      {
+        "type": "attack",
+        "value": 9
+      },
+      {
+        "type": "defend",
+        "value": 7
+      },
+      {
+        "type": "attack",
+        "value": 10
+      }
+    ],
+    "intro": "The floor is warm here."
+  },
+  {
+    "name": "Hell Zealot",
+    "type": "cultist",
+    "floor": 3,
+    "hp": 46,
+    "intents": [
+      {
+        "type": "attack",
+        "value": 9
+      },
+      {
+        "type": "buff",
+        "value": 3
+      },
+      {
+        "type": "heavy",
+        "value": 14
+      }
+    ],
+    "intro": "It sings to the machine in a dead language."
+  },
+  {
+    "name": "Grave Titan",
+    "type": "skeleton",
+    "floor": 3,
+    "hp": 50,
+    "intents": [
+      {
+        "type": "attack",
+        "value": 10
+      },
+      {
+        "type": "attack",
+        "value": 10
+      },
+      {
+        "type": "heavy",
+        "value": 14
+      }
+    ],
+    "intro": "The biggest one yet. It has your name."
+  },
+  {
+    "name": "The Hollow King",
+    "type": "cultist",
+    "floor": 3,
+    "boss": true,
+    "hp": 54,
+    "intents": [
+      {
+        "type": "attack",
+        "value": 10
+      },
+      {
+        "type": "buff",
+        "value": 3
+      },
+      {
+        "type": "heavy",
+        "value": 15
+      }
+    ],
+    "intro": "The machine was a throne. This is what sits on it."
   }
 ]

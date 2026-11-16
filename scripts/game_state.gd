@@ -35,6 +35,7 @@ var free_spin := false
 var second_wind_used: bool = false
 var run_over: bool = false
 var victory: bool = false
+var endless_depth: int = 0
 
 var rng := RandomNumberGenerator.new()
 var logs: Array = []
@@ -63,6 +64,7 @@ func start_run(seed_value: int = 0) -> void:
 	second_wind_used = false
 	run_over = false
 	victory = false
+	endless_depth = 0
 	logs = []
 	stats = {"spins": 0, "damage_dealt": 0, "damage_taken": 0, "healed": 0, "blocked": 0}
 	if seed_value != 0:
@@ -73,7 +75,12 @@ func start_run(seed_value: int = 0) -> void:
 
 
 func _start_fight() -> void:
-	var fight: Dictionary = fights[fight_index]
+	var fight: Dictionary
+	if fight_index < fights.size():
+		fight = fights[fight_index]
+	else:
+		endless_depth = fight_index - fights.size() + 1
+		fight = _endless_fight(endless_depth)
 	floor = int(fight.get("floor", 1))
 	var archetype: Dictionary = enemies[String(fight["type"])]
 	enemy = {
@@ -371,6 +378,9 @@ func on_enemy_defeated() -> String:
 	fights_won += 1
 	if fight_index >= fights.size() - 1:
 		victory = true
+		if _endless_enabled():
+			_log("The Hollow King falls. Below, something else wakes.", "gold")
+			return "endless"
 		run_over = true
 		return "victory"
 	hp = min(max_hp, hp + int(config["heal_between_fights"]))
@@ -385,6 +395,28 @@ func on_enemy_defeated() -> String:
 func begin_next_fight() -> void:
 	fight_index += 1
 	_start_fight()
+
+
+func _endless_enabled() -> bool:
+	return not config.is_empty() and bool(config.get("endless", false))
+
+
+func _endless_fight(depth: int) -> Dictionary:
+	var names := ["Endless Echo", "The Deep Hungers", "What Walks Below"]
+	var types := ["skeleton", "slime", "cultist"]
+	var scale := mini(6, (depth - 1) / 2)
+	return {
+		"name": names[(depth - 1) % names.size()],
+		"type": types[(depth - 1) % types.size()],
+		"floor": 3 + depth,
+		"hp": 88 + 14 * depth,
+		"intents": [
+			{"type": "attack", "value": 12 + scale},
+			{"type": "attack", "value": 12 + scale},
+			{"type": "heavy", "value": 19 + scale},
+		],
+		"intro": "The dark below does not end.",
+	}
 
 
 func draft_options() -> Array:
@@ -438,6 +470,7 @@ func summary() -> Dictionary:
 		"damage_dealt": int(stats.get("damage_dealt", 0)),
 		"damage_taken": int(stats.get("damage_taken", 0)),
 		"victory": victory,
+		"endless_depth": endless_depth,
 		"bone_coins": bone_coins_earned(),
 		"seed": int(rng.seed),
 	}

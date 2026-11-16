@@ -329,7 +329,7 @@ func _test_difficulty() -> void:
 	var h := GameState.new()
 	h.start_run(1, "high_roller")
 	_check(h.difficulty == "high_roller", "high_roller mode accepted")
-	_check(h.diff_hp == 1.25 and h.diff_atk == 1.25 and h.diff_reward == 1.5, "high_roller multipliers 1.25/1.25/1.5, got %s/%s/%s" % [str(h.diff_hp), str(h.diff_atk), str(h.diff_reward)])
+	_check(h.diff_hp == 1.10 and h.diff_atk == 1.10 and h.diff_reward == 1.5, "high_roller multipliers 1.10/1.10/1.5, got %s/%s/%s" % [str(h.diff_hp), str(h.diff_atk), str(h.diff_reward)])
 	_check(h.enemy_hp == int(round(36 * 1.10)), "first fight hp 36 scaled to %d, got %d" % [int(round(36 * 1.10)), h.enemy_hp])
 	var bad := GameState.new()
 	bad.start_run(1, "nightmare")

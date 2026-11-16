@@ -15,6 +15,7 @@ func _init() -> void:
 	_test_flow()
 	_test_endless()
 	_test_unlocks()
+	_test_consumables()
 	_test_shop()
 	_test_boss_rules()
 	_test_sequencing()
@@ -199,7 +200,7 @@ func _test_relics() -> void:
 	vamp.enemy_hp = 1
 	vamp.resolve([["sword", "sword", "sword"], ["shield", "shield", "shield"], ["shield", "shield", "shield"]])
 	vamp.on_enemy_defeated()
-	_check(int(vamp.hp) == 46, "Vampiric Edge: kill heals 1 on top of the 15 between-fight heal (30->46), got %d" % int(vamp.hp))
+	_check(int(vamp.hp) == 47, "Vampiric Edge: kill heals 1 on top of the 16 between-fight heal (30->47), got %d" % int(vamp.hp))
 
 	var pockets := _fresh()
 	_add(pockets, "deep_pockets")
@@ -279,7 +280,7 @@ func _test_flow() -> void:
 	next.resolve(_grid("sword"))
 	var next_outcome: String = next.on_enemy_defeated()
 	_check(next_outcome == "draft", "an early win returns draft")
-	_check(next.hp == 45, "an early win heals 15 between fights (30->45), got %d" % next.hp)
+	_check(next.hp == 46, "an early win heals 16 between fights (30->46), got %d" % next.hp)
 	_check(next.fights_won == 1, "fights_won increments")
 
 	var bones := _fresh()
@@ -326,6 +327,66 @@ func _test_unlocks() -> void:
 	var s := _fresh()
 	_check(s.max_hp == 52, "no meta (disabled): max_hp stays 52, got %d" % s.max_hp)
 	MetaSave.enabled = true
+
+
+func _test_consumables() -> void:
+	GameData.ensure_loaded()
+	_check(GameData.consumables.size() >= 4, "4+ consumables defined, got %d" % GameData.consumables.size())
+	var g := GameState.new()
+	g.start_run(21)
+	g.tutorial_active = false
+	# inventory cap 2
+	_check(g.add_consumable("replace_symbol") and g.add_consumable("remove_skull"), "two consumables fit")
+	_check(not g.add_consumable("free_reroll"), "inventory capped at 2")
+	_check(not g.add_consumable("nonsense"), "unknown consumable rejected")
+	# roll to set current_grid
+	var r: Dictionary = g.roll()
+	g.current_grid = r["grid"]
+	# replace_symbol with confirm
+	_check(g.begin_consumable("replace_symbol", {"row": 0, "col": 0, "symbol": "sword"}), "begin replace_symbol")
+	_check(g.consumables.size() == 1, "pending consumable leaves inventory")
+	g.cancel_consumable()
+	_check(g.consumables.size() == 2, "cancel returns it (undo before confirm)")
+	_check(g.begin_consumable("replace_symbol", {"row": 0, "col": 0, "symbol": "sword"}), "begin again")
+	_check(g.confirm_consumable() and String(g.current_grid[0][0]) == "sword", "confirmed: cell replaced with sword")
+	# remove_skull only works on a skull
+	g.current_grid = [["skull","coin","shield"],["sword","potion","coin"],["sword","sword","coin"]]
+	g.add_consumable("remove_skull")
+	_check(g.begin_consumable("remove_skull", {"row": 0, "col": 1}), "begin remove_skull on non-skull")
+	_check(not g.confirm_consumable() and String(g.current_grid[0][1]) == "coin", "invalid target refused, undo restores")
+	_check(g.begin_consumable("remove_skull", {"row": 0, "col": 0}), "begin remove_skull on skull")
+	_check(g.confirm_consumable() and String(g.current_grid[0][0]) == "blank", "skull removed -> blank")
+	# level_symbol: swords +1 for the rest of the run
+	g.add_consumable("level_symbol")
+	_check(g.begin_consumable("level_symbol", {"symbol": "sword"}) and g.confirm_consumable(), "level up sword")
+	var g2 := GameState.new()
+	g2.start_run(22)
+	g2.tutorial_active = false
+	var rep2: Dictionary = g2.resolve([["sword","coin","coin"],["coin","coin","coin"],["coin","coin","coin"]])
+	var base_dmg := int(rep2["damage"])
+	var rep3: Dictionary = g.resolve([["sword","coin","coin"],["coin","coin","coin"],["coin","coin","coin"]])
+	_check(int(rep3["damage"]) == base_dmg + g.last_bet, "leveled sword deals +1*bet more: %d vs %d" % [int(rep3["damage"]), base_dmg])
+	# free_reroll sets free_spin
+	g.add_consumable("free_reroll")
+	g.coins = 10
+	var c_before := g.coins
+	_check(g.begin_consumable("free_reroll") and g.confirm_consumable(), "use Loaded Spring")
+	g.roll()
+	_check(g.coins == c_before, "free reroll costs no coins")
+	# boss drop
+	var drops := 0
+	for i in range(200):
+		var bb := GameState.new()
+		bb.start_run(1000 + i)
+		bb.enemy = {"boss": true}
+		bb.on_enemy_defeated()
+		if bb.consumables.size() > 0:
+			drops += 1
+	_check(drops > 0, "boss fights can drop consumables (%d/200 with 50%% chance)" % drops)
+	# shop sells a consumable
+	var st: Dictionary = g.open_shop()
+	_check(st.get("consumable", "") != "", "shop stocks a consumable")
+	_check(g.teach_seen.get("first_consumable", false) or g.teach_seen.get("first_shop", false), "teach hooks wired")
 
 
 func _test_shop() -> void:

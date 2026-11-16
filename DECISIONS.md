@@ -40,3 +40,8 @@ Choices made where the brief left room; simpler option taken on ambiguity.
 - Interest: +1 coin per 10 held at shop entry, capped at +5.
 - Permanent upgrades (max 1 per shop): Extra Relic Slot 15c, Reroll Discount 12c, Marrow Tonic (+8 max HP) 10c.
 - Tuned against the 1000-run sim gate (40-60% normal band): heal_between_fights 15 after boss rules (see SYS3 retune).
+
+## Consumable prices (SYS5)
+- Inventory cap 2; sold in shop (1 random per visit) and 50% boss drop.
+- Gilded Chisel (replace one symbol) 8c, Bone Saw (remove one Skull -> Blank) 6c, Whetstone Oil (level a symbol type for the run) 10c, Loaded Spring (free reroll mid-fight) 7c.
+- Tuned against the 1000-run sim gate: heal_between_fights 16 (was 15) to keep seed 777 in the 40-60% band after SYS5 RNG-stream shifts; normal 45.9/40.8/46.3% IN, high_roller 22.0/23.9/23.0% in 15-35% IN.

@@ -44,6 +44,10 @@ var shop_upgrades_bought: Array = []
 var shop_interest := 0
 var permanent_reroll_discount := 0
 var teach_seen: Dictionary = {}
+var consumables: Array = []
+var pending_consumable: Dictionary = {}
+var symbol_levels: Dictionary = {}
+var current_grid: Array = []
 var diff_hp := 1.0
 var diff_atk := 1.0
 var diff_reward := 1.0
@@ -238,6 +242,7 @@ func roll() -> Dictionary:
 		last_jackpot = true
 		free_spin = true
 		_log("JACKPOT! The pity timer pays out — free re-spin.", "gold")
+	current_grid = grid
 	return {"grid": grid, "near_miss": near_miss, "jackpot": jackpot, "rigged": rigged or scripted, "scripted": scripted}
 
 
@@ -256,7 +261,10 @@ func resolve(grid: Array) -> Dictionary:
 	if run_over:
 		return {}
 	stats["spins"] += 1
-	var values: Dictionary = config["values"]
+	var values: Dictionary = (config["values"] as Dictionary).duplicate()
+	for sym in symbol_levels.keys():
+		if values.has(sym):
+			values[sym] = int(values[sym]) + int(symbol_levels[sym])
 	var sword_bonus := RelicEngine.total(self, "sword_bonus")
 	var block_bonus := RelicEngine.total(self, "block_bonus")
 	var heal_bonus := RelicEngine.total(self, "heal_bonus")
@@ -453,6 +461,10 @@ func on_enemy_defeated() -> String:
 	if kill_heal > 0:
 		hp = min(max_hp, hp + kill_heal)
 		_log("Vampiric Edge: +%d HP." % kill_heal, "good")
+	if bool(enemy.get("boss", false)) and consumables.size() < 2 and rng.randf() < 0.5 and not GameData.consumables.is_empty():
+		var drop: Dictionary = GameData.consumables[rng.randi() % GameData.consumables.size()]
+		consumables.append(String(drop["id"]))
+		_log("The boss drops %s." % drop["name"], "gold")
 	return "draft"
 
 
@@ -625,7 +637,10 @@ func build_sequence(grid: Array) -> Array:
 	## in slot order. Each step carries the running tallies so the final number is
 	## fully explained. Mirrors resolve() math; UI animates these steps (<=2.5s,
 	## fast mode skips to the end).
-	var values: Dictionary = config["values"]
+	var values: Dictionary = (config["values"] as Dictionary).duplicate()
+	for sym in symbol_levels.keys():
+		if values.has(sym):
+			values[sym] = int(values[sym]) + int(symbol_levels[sym])
 	var steps: Array = []
 	var tally := {"damage": 0, "block": 0, "self_damage": 0, "heal": 0, "coins": 0}
 	var sword_bonus := RelicEngine.total(self, "sword_bonus") + RelicEngine.total(self, "all_bonus") + RelicEngine.synergy_bonus(self, "sword")
@@ -677,9 +692,13 @@ func open_shop() -> Dictionary:
 	shop_upgrades_bought = []
 	shop_interest = mini(5, coins / 10)
 	coins += shop_interest
+	var consumable_stock := ""
+	if not GameData.consumables.is_empty():
+		consumable_stock = String(GameData.consumables[rng.randi() % GameData.consumables.size()]["id"])
 	var stock := {
 		"relics": draft_options(),
 		"upgrades": _shop_upgrades(),
+		"consumable": consumable_stock,
 		"reroll_cost": shop_reroll_cost(),
 		"interest": shop_interest,
 		"coins": coins,
@@ -729,3 +748,79 @@ func buy_upgrade(id: String) -> bool:
 
 func shop_relic_cap() -> int:
 	return int(config["max_relics"]) + RelicEngine.total(self, "max_relics_bonus") + shop_upgrades_bought.count("relic_slot")
+
+
+func add_consumable(id: String) -> bool:
+	## Inventory holds at most 2 consumables.
+	var c := GameData.consumable_by_id(id)
+	if c.is_empty() or consumables.size() >= 2:
+		return false
+	consumables.append(id)
+	return true
+
+
+func begin_consumable(id: String, target: Dictionary = {}) -> bool:
+	## Click consumable -> click target. The consumable leaves the inventory and
+	## waits as pending; cancel_consumable() undoes before confirm.
+	if not consumables.has(id):
+		return false
+	var c := GameData.consumable_by_id(id)
+	match String(c.get("effect", "")):
+		"replace_symbol", "remove_skull":
+			if current_grid.is_empty():
+				return false
+	consumables.erase(id)
+	pending_consumable = {"id": id, "target": target}
+	return true
+
+
+func cancel_consumable() -> void:
+	if pending_consumable.is_empty():
+		return
+	consumables.append(String(pending_consumable.get("id", "")))
+	pending_consumable = {}
+
+
+func confirm_consumable() -> bool:
+	if pending_consumable.is_empty():
+		return false
+	var id := String(pending_consumable["id"])
+	var target: Dictionary = pending_consumable.get("target", {})
+	var c := GameData.consumable_by_id(id)
+	match String(c.get("effect", "")):
+		"replace_symbol":
+			var r := int(target.get("row", -1))
+			var col := int(target.get("col", -1))
+			if r < 0 or r >= current_grid.size() or col < 0 or col >= current_grid[r].size():
+				consumables.append(id)
+				pending_consumable = {}
+				return false
+			if not ["sword", "shield", "potion", "coin", "skull"].has(String(target.get("symbol", ""))):
+				consumables.append(id)
+				pending_consumable = {}
+				return false
+			current_grid[r][col] = String(target["symbol"])
+		"remove_skull":
+			var r := int(target.get("row", -1))
+			var col := int(target.get("col", -1))
+			if r < 0 or r >= current_grid.size() or col < 0 or col >= current_grid[r].size() or String(current_grid[r][col]) != "skull":
+				consumables.append(id)
+				pending_consumable = {}
+				return false
+			current_grid[r][col] = "blank"
+		"level_symbol":
+			var sym := String(target.get("symbol", ""))
+			if not ["sword", "shield", "potion", "coin", "skull"].has(sym):
+				consumables.append(id)
+				pending_consumable = {}
+				return false
+			symbol_levels[sym] = int(symbol_levels.get(sym, 0)) + 1
+		"free_reroll":
+			free_spin = true
+		_:
+			consumables.append(id)
+			pending_consumable = {}
+			return false
+	pending_consumable = {}
+	_teach("first_consumable")
+	return true

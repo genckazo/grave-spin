@@ -13,6 +13,7 @@ static var tutorial: Dictionary = {}
 static var tooltips: Dictionary = {}
 static var boss_rules: Array = []
 static var upgrades: Array = []
+static var consumables: Array = []
 const SCHEMA_VERSION := 1
 
 static func ensure_loaded() -> void:
@@ -35,6 +36,8 @@ static func ensure_loaded() -> void:
 	boss_rules = br_data.get("pool", []) if br_data is Dictionary else []
 	var up_data = _read_json("res://data/upgrades.json")
 	upgrades = up_data.get("upgrades", []) if up_data is Dictionary else []
+	var con_data = _read_json("res://data/consumables.json")
+	consumables = con_data.get("consumables", []) if con_data is Dictionary else []
 
 static func _check_schema(path: String, parsed: Variant) -> void:
 	var v = null
@@ -82,4 +85,10 @@ static func upgrade_by_id(id: String) -> Dictionary:
 	for u in upgrades:
 		if String(u.get("id", "")) == id:
 			return u
+	return {}
+
+static func consumable_by_id(id: String) -> Dictionary:
+	for c in consumables:
+		if String(c.get("id", "")) == id:
+			return c
 	return {}

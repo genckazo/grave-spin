@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "consumables": [
+    {
+      "id": "replace_symbol",
+      "name": "Gilded Chisel",
+      "desc": "Replace one symbol on one reel with a symbol of your choice.",
+      "price": 8,
+      "effect": "replace_symbol"
+    },
+    {
+      "id": "remove_skull",
+      "name": "Bone Saw",
+      "desc": "Remove one Skull from a reel; that slot becomes Blank.",
+      "price": 6,
+      "effect": "remove_skull"
+    },
+    {
+      "id": "level_symbol",
+      "name": "Whetstone Oil",
+      "desc": "Level up a symbol type for the rest of the run (all Swords +1 damage, etc.).",
+      "price": 10,
+      "effect": "level_symbol"
+    },
+    {
+      "id": "free_reroll",
+      "name": "Loaded Spring",
+      "desc": "Reroll the current reels once for free, mid-fight.",
+      "price": 7,
+      "effect": "free_reroll"
+    }
+  ]
+}

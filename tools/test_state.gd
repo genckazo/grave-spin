@@ -13,6 +13,7 @@ func _init() -> void:
 	_test_bet()
 	_test_pity()
 	_test_flow()
+	_test_endless()
 	_test_meta_save()
 	var verdict := "PASS" if failures == 0 else "FAIL"
 	print("TESTS %s  failures=%d" % [verdict, failures])
@@ -47,17 +48,18 @@ func _test_data() -> void:
 	for r in GameData.relics:
 		counts[String(r["rarity"])] = int(counts.get(String(r["rarity"]), 0)) + 1
 	_check(int(counts["common"]) == 10 and int(counts["rare"]) == 7 and int(counts["cursed"]) == 3, "relic rarity split 10 common / 7 rare / 3 cursed")
-	_check(GameData.fights.size() == 10, "10 fights load from data/fights.json")
+	_check(GameData.fights.size() == 15, "15 fights load from data/fights.json")
 	var bosses := 0
 	var floors_ok := true
 	for f in GameData.fights:
 		if bool(f.get("boss", false)):
 			bosses += 1
-		if int(f.get("floor", 1)) not in [1, 2]:
+		if int(f.get("floor", 1)) not in [1, 2, 3]:
 			floors_ok = false
-	_check(bosses == 2 and floors_ok, "exactly 2 bosses, all fights on floor 1 or 2")
+	_check(bosses == 3 and floors_ok, "exactly 3 bosses, all fights on floors 1-3")
 	_check(String(GameData.fights[4]["name"]) == "Bone Captain" and bool(GameData.fights[4]["boss"]), "Bone Captain is the floor-1 boss")
 	_check(String(GameData.fights[9]["name"]) == "The Grave Warden" and int(GameData.fights[9]["hp"]) == 70 and bool(GameData.fights[9]["boss"]), "Grave Warden is the floor-2 boss at hp 70")
+	_check(String(GameData.fights[14]["name"]) == "The Hollow King" and int(GameData.fights[14]["hp"]) == 54 and int(GameData.fights[14]["floor"]) == 3 and bool(GameData.fights[14]["boss"]), "The Hollow King is the floor-3 final boss at hp 54")
 	_check(GameData.enemies.size() == 3, "3 enemy archetypes load")
 	for relic in GameData.relics:
 		var icon_path := "res://assets/generated/" + String(relic["icon"])
@@ -172,7 +174,7 @@ func _test_relics() -> void:
 	vamp.enemy_hp = 1
 	vamp.resolve([["sword", "sword", "sword"], ["shield", "shield", "shield"], ["shield", "shield", "shield"]])
 	vamp.on_enemy_defeated()
-	_check(int(vamp.hp) == 39, "Vampiric Edge: kill heals 1 on top of the 8 between-fight heal (30->39)")
+	_check(int(vamp.hp) == 42, "Vampiric Edge: kill heals 1 on top of the 11 between-fight heal (30->42)")
 
 	var pockets := _fresh()
 	_add(pockets, "deep_pockets")
@@ -244,7 +246,7 @@ func _test_flow() -> void:
 	win.resolve(_grid("sword"))
 	_check(win.enemy_hp == 0, "the tenth enemy can be killed")
 	var outcome: String = win.on_enemy_defeated()
-	_check(outcome == "victory" and win.victory, "killing fight ten returns victory")
+	_check(outcome == "draft" and not win.victory, "killing fight ten continues the run (floor 3 remains)")
 
 	var next := _fresh()
 	next.enemy_hp = 1
@@ -252,7 +254,7 @@ func _test_flow() -> void:
 	next.resolve(_grid("sword"))
 	var next_outcome: String = next.on_enemy_defeated()
 	_check(next_outcome == "draft", "an early win returns draft")
-	_check(next.hp == 38, "an early win heals 8 between fights")
+	_check(next.hp == 41, "an early win heals 11 between fights")
 	_check(next.fights_won == 1, "fights_won increments")
 
 	var bones := _fresh()
@@ -261,7 +263,27 @@ func _test_flow() -> void:
 	_check(bones.bone_coins_earned() == 8, "bone coins = fights*2 + coins/8")
 
 	var sum := _fresh().summary()
-	_check(sum.has("seed") and int(sum["fights_total"]) == 10 and sum.has("victory"), "run summary card has seed, fights_total=10, victory")
+	_check(sum.has("seed") and int(sum["fights_total"]) == 15 and sum.has("victory") and sum.has("endless_depth"), "run summary card has seed, fights_total=15, victory, endless_depth")
+
+
+func _test_endless() -> void:
+	var s := _fresh()
+	s.fight_index = GameData.fights.size() - 1
+	s._start_fight()
+	_check(String(s.enemy["name"]) == "The Hollow King" and s.floor == 3, "final fight is The Hollow King on floor 3")
+	s.enemy_hp = 1
+	s.resolve(_grid("sword"))
+	var outcome: String = s.on_enemy_defeated()
+	_check(outcome == "endless" and s.victory and not s.run_over, "clearing the final boss with endless on: victory set, run continues")
+	s.begin_next_fight()
+	_check(s.floor == 4 and s.endless_depth == 1 and s.enemy_hp == 88 + 14, "endless fight 1: floor 4, depth 1, hp 102, got hp %d" % s.enemy_hp)
+	_check(int(s.summary()["endless_depth"]) == 1, "summary reports endless_depth 1")
+	s.run_over = false
+	s.hp = 1
+	s.enemy_hp = 500
+	s.resolve(_grid("sword"))
+	s.resolve(_grid("sword"))
+	s.resolve(_grid("sword"))
 
 
 func _test_meta_save() -> void:

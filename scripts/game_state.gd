@@ -42,6 +42,8 @@ var boss_rule := ""
 var shop_rerolls := 0
 var shop_upgrades_bought: Array = []
 var shop_interest := 0
+var shop_pending := false
+var shop_consumable := ""
 var permanent_reroll_discount := 0
 var teach_seen: Dictionary = {}
 var consumables: Array = []
@@ -91,6 +93,8 @@ func start_run(seed_value: int = 0, mode := "normal") -> void:
 	run_over = false
 	victory = false
 	endless_depth = 0
+	shop_pending = false
+	shop_consumable = ""
 	logs = []
 	stats = {"spins": 0, "damage_dealt": 0, "damage_taken": 0, "healed": 0, "blocked": 0}
 	tutorial_active = false
@@ -465,7 +469,22 @@ func on_enemy_defeated() -> String:
 		var drop: Dictionary = GameData.consumables[rng.randi() % GameData.consumables.size()]
 		consumables.append(String(drop["id"]))
 		_log("The boss drops %s." % drop["name"], "gold")
+	if _shop_after_this_boss():
+		shop_pending = true
+		_log("The grave market opens its shutters.", "gold")
 	return "draft"
+
+
+func _shop_after_this_boss() -> bool:
+	if not bool(enemy.get("boss", false)):
+		return false
+	var after: Array = []
+	if not config.is_empty():
+		after = config.get("shop_after_boss_fights", [])
+	for n in after:
+		if int(n) == fight_index + 1:
+			return true
+	return false
 
 
 func begin_next_fight() -> void:
@@ -696,6 +715,7 @@ func open_shop() -> Dictionary:
 	var consumable_stock := ""
 	if not GameData.consumables.is_empty():
 		consumable_stock = String(GameData.consumables[rng.randi() % GameData.consumables.size()]["id"])
+	shop_consumable = consumable_stock
 	var stock := {
 		"relics": draft_options(),
 		"upgrades": _shop_upgrades(),
@@ -726,6 +746,29 @@ func reroll_shop() -> bool:
 	coins -= cost
 	shop_rerolls += 1
 	return true
+
+
+func shop_relic_stock() -> Array:
+	## Fresh relic offers for the current shop visit (after a paid reroll).
+	return draft_options()
+
+
+func buy_shop_consumable() -> bool:
+	## Buys the one consumable stocked in this shop visit.
+	if shop_consumable == "":
+		return false
+	var c := GameData.consumable_by_id(shop_consumable)
+	if c.is_empty() or coins < int(c.get("price", 0)) or consumables.size() >= 2:
+		return false
+	coins -= int(c["price"])
+	consumables.append(shop_consumable)
+	_teach("first_consumable")
+	shop_consumable = ""
+	return true
+
+
+func leave_shop() -> void:
+	shop_pending = false
 
 
 func buy_upgrade(id: String) -> bool:

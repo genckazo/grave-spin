@@ -38,5 +38,9 @@
       "enemy_atk": 1.1,
       "reward": 1.5
     }
-  }
+  },
+  "shop_after_boss_fights": [
+    5,
+    10
+  ]
 }

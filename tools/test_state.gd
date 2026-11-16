@@ -17,6 +17,7 @@ func _init() -> void:
 	_test_unlocks()
 	_test_consumables()
 	_test_shop()
+	_test_shop_flow()
 	_test_boss_rules()
 	_test_sequencing()
 	_test_tutorial_tooltips()
@@ -426,6 +427,74 @@ func _test_shop() -> void:
 	poor.open_shop()
 	_check(not poor.buy_upgrade("max_hp_8"), "cannot afford 10c upgrade with 1 coin")
 	_check(not poor.reroll_shop(), "cannot reroll with 1 coin (cost 2)")
+
+
+func _test_shop_flow() -> void:
+	GameData.ensure_loaded()
+	# shop is pending exactly after boss fights 5 and 10, not elsewhere
+	var boss5 := GameState.new()
+	boss5.start_run(11)
+	boss5.tutorial_active = false
+	boss5.fight_index = 4
+	boss5._start_fight()
+	_check(bool(boss5.enemy.get("boss", false)), "fight index 4 is a boss")
+	boss5.enemy_hp = 1
+	boss5.resolve(_grid("sword"))
+	var out5: String = boss5.on_enemy_defeated()
+	_check(out5 == "draft" and boss5.shop_pending, "winning boss fight 5 (Bone Captain) opens the shop")
+
+	var boss10 := GameState.new()
+	boss10.start_run(12)
+	boss10.tutorial_active = false
+	boss10.fight_index = 9
+	boss10._start_fight()
+	boss10.enemy_hp = 1
+	boss10.resolve(_grid("sword"))
+	boss10.on_enemy_defeated()
+	_check(boss10.shop_pending, "winning boss fight 10 (Grave Warden) opens the shop")
+
+	var regular := GameState.new()
+	regular.start_run(13)
+	regular.tutorial_active = false
+	regular.enemy_hp = 1
+	regular.resolve(_grid("sword"))
+	regular.on_enemy_defeated()
+	_check(not regular.shop_pending, "a regular fight win does not open the shop")
+
+	var final := GameState.new()
+	final.start_run(14)
+	final.tutorial_active = false
+	final.fight_index = 14
+	final._start_fight()
+	final.enemy_hp = 1
+	final.resolve(_grid("sword"))
+	final.on_enemy_defeated()
+	_check(not final.shop_pending, "the final boss opens no shop")
+
+	# interest is paid once per visit; rerolling inside the visit never re-pays
+	var g := GameState.new()
+	g.start_run(15)
+	g.tutorial_active = false
+	g.coins = 40
+	var stock: Dictionary = g.open_shop()
+	_check(int(stock["interest"]) == 4 and g.coins == 44, "interest +4 paid on entry (40->44), got %d" % g.coins)
+	_check(g.reroll_shop() and g.coins == 42 and g.shop_interest == 4, "reroll inside the visit costs 2 and pays no extra interest")
+	# reroll price resets on the next visit
+	var stock2: Dictionary = g.open_shop()
+	_check(int(stock2["reroll_cost"]) == 2, "reroll price resets to 2 on the next visit, got %d" % int(stock2["reroll_cost"]))
+	# consumable slot: buy once, then sold out
+	g.coins = 50
+	g.open_shop()
+	var cid := g.shop_consumable
+	_check(cid != "", "a consumable is stocked")
+	var price := int(GameData.consumable_by_id(cid).get("price", 0))
+	var before := g.coins
+	_check(g.buy_shop_consumable() and g.consumables.has(cid) and g.coins == before - price, "buying the stocked consumable deducts its price")
+	_check(not g.buy_shop_consumable() and g.shop_consumable == "", "consumable slot is sold out after one purchase")
+	# leaving clears the pending flag
+	g.shop_pending = true
+	g.leave_shop()
+	_check(not g.shop_pending, "leave_shop clears shop_pending")
 
 
 func _test_boss_rules() -> void:

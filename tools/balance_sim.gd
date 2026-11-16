@@ -6,7 +6,7 @@ extends SceneTree
 ## PASS requires every seed's win rate inside the 40-60% band.
 
 const RUNS := 1000
-const SEEDS := [12345, 777, 2024]
+const SEEDS := [12345, 777, 2024, 99999, 31337]
 
 
 func _init() -> void:

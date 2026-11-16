@@ -1,8 +1,68 @@
 [
-  {"id": "hp1", "name": "Marrow Vigor", "cost": 20, "requires": [], "desc": "+4 max HP every run.", "effect": "max_hp", "value": 4},
-  {"id": "hp2", "name": "Iron Marrow", "cost": 60, "requires": ["hp1"], "desc": "+8 more max HP every run.", "effect": "max_hp", "value": 8},
-  {"id": "relic_whetstone", "name": "Whetstone Kit", "cost": 40, "requires": [], "desc": "Start each run with Whetstone.", "effect": "start_relic", "value": "whetstone"},
-  {"id": "relic_bulwark", "name": "Bulwark Kit", "cost": 80, "requires": ["relic_whetstone"], "desc": "Start each run with Bulwark Sigil.", "effect": "start_relic", "value": "bulwark_sigil"},
-  {"id": "row4", "name": "Fourth Row", "cost": 120, "requires": ["hp2"], "desc": "The machine grows a 4th row (flag; visual next).", "effect": "fourth_row", "value": 1},
-  {"id": "skin_gilded", "name": "Gilded Machine", "cost": 50, "requires": [], "desc": "Cosmetic golden machine skin.", "effect": "skin", "value": "gilded"}
+  {
+    "id": "hp1",
+    "name": "Marrow Vigor",
+    "cost": 20,
+    "requires": [],
+    "desc": "+4 max HP every run.",
+    "effect": "max_hp",
+    "value": 4,
+    "schema_version": 1
+  },
+  {
+    "id": "hp2",
+    "name": "Iron Marrow",
+    "cost": 60,
+    "requires": [
+      "hp1"
+    ],
+    "desc": "+8 more max HP every run.",
+    "effect": "max_hp",
+    "value": 8,
+    "schema_version": 1
+  },
+  {
+    "id": "relic_whetstone",
+    "name": "Whetstone Kit",
+    "cost": 40,
+    "requires": [],
+    "desc": "Start each run with Whetstone.",
+    "effect": "start_relic",
+    "value": "whetstone",
+    "schema_version": 1
+  },
+  {
+    "id": "relic_bulwark",
+    "name": "Bulwark Kit",
+    "cost": 80,
+    "requires": [
+      "relic_whetstone"
+    ],
+    "desc": "Start each run with Bulwark Sigil.",
+    "effect": "start_relic",
+    "value": "bulwark_sigil",
+    "schema_version": 1
+  },
+  {
+    "id": "row4",
+    "name": "Fourth Row",
+    "cost": 120,
+    "requires": [
+      "hp2"
+    ],
+    "desc": "The machine grows a 4th row (flag; visual next).",
+    "effect": "fourth_row",
+    "value": 1,
+    "schema_version": 1
+  },
+  {
+    "id": "skin_gilded",
+    "name": "Gilded Machine",
+    "cost": 50,
+    "requires": [],
+    "desc": "Cosmetic golden machine skin.",
+    "effect": "skin",
+    "value": "gilded",
+    "schema_version": 1
+  }
 ]

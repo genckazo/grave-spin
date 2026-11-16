@@ -10,7 +10,8 @@
     "flavor": "The blade remembers every stone.",
     "tags": [
       "sword"
-    ]
+    ],
+    "schema_version": 1
   },
   {
     "id": "bulwark_sigil",
@@ -23,7 +24,8 @@
     "flavor": "A promise carved in iron.",
     "tags": [
       "reel"
-    ]
+    ],
+    "schema_version": 1
   },
   {
     "id": "leech_flask",
@@ -36,7 +38,8 @@
     "flavor": "It bites back, but only a little.",
     "tags": [
       "sword"
-    ]
+    ],
+    "schema_version": 1
   },
   {
     "id": "gilded_reel",
@@ -50,7 +53,8 @@
     "tags": [
       "coin",
       "reel"
-    ]
+    ],
+    "schema_version": 1
   },
   {
     "id": "bone_ward",
@@ -63,7 +67,8 @@
     "flavor": "The dead nod to their own.",
     "tags": [
       "skull"
-    ]
+    ],
+    "schema_version": 1
   },
   {
     "id": "iron_frame",
@@ -76,7 +81,8 @@
     "flavor": "The machine was built to take a beating.",
     "tags": [
       "reel"
-    ]
+    ],
+    "schema_version": 1
   },
   {
     "id": "lucky_coin",
@@ -90,7 +96,8 @@
     "tags": [
       "coin",
       "gamble"
-    ]
+    ],
+    "schema_version": 1
   },
   {
     "id": "thick_hide",
@@ -103,7 +110,8 @@
     "flavor": "Scar tissue, but make it fashion.",
     "tags": [
       "reel"
-    ]
+    ],
+    "schema_version": 1
   },
   {
     "id": "potion_belt",
@@ -116,7 +124,8 @@
     "flavor": "One for the road. Two, actually.",
     "tags": [
       "sword"
-    ]
+    ],
+    "schema_version": 1
   },
   {
     "id": "sharp_teeth",
@@ -130,7 +139,8 @@
     "tags": [
       "sword",
       "skull"
-    ]
+    ],
+    "schema_version": 1
   },
   {
     "id": "second_wind",
@@ -143,7 +153,8 @@
     "flavor": "Death checks the machine. It does not check twice.",
     "tags": [
       "gamble"
-    ]
+    ],
+    "schema_version": 1
   },
   {
     "id": "lucky_seventh",
@@ -158,7 +169,8 @@
     "tags": [
       "gamble",
       "sword"
-    ]
+    ],
+    "schema_version": 1
   },
   {
     "id": "bloodstone",
@@ -172,7 +184,8 @@
     "tags": [
       "coin",
       "skull"
-    ]
+    ],
+    "schema_version": 1
   },
   {
     "id": "skull_crown",
@@ -185,7 +198,8 @@
     "flavor": "Wear the thing that wants to eat you.",
     "tags": [
       "skull"
-    ]
+    ],
+    "schema_version": 1
   },
   {
     "id": "gamblers_eye",
@@ -199,7 +213,8 @@
     "tags": [
       "gamble",
       "skull"
-    ]
+    ],
+    "schema_version": 1
   },
   {
     "id": "deep_pockets",
@@ -212,7 +227,8 @@
     "flavor": "The grave has room for more.",
     "tags": [
       "coin"
-    ]
+    ],
+    "schema_version": 1
   },
   {
     "id": "vampiric_edge",
@@ -225,7 +241,8 @@
     "flavor": "Every grave feeds you a little.",
     "tags": [
       "sword"
-    ]
+    ],
+    "schema_version": 1
   },
   {
     "id": "grave_pact",
@@ -240,7 +257,8 @@
     "tags": [
       "skull",
       "gamble"
-    ]
+    ],
+    "schema_version": 1
   },
   {
     "id": "dead_mans_hand",
@@ -254,7 +272,8 @@
     "tags": [
       "sword",
       "gamble"
-    ]
+    ],
+    "schema_version": 1
   },
   {
     "id": "house_edge",
@@ -269,7 +288,8 @@
     "tags": [
       "gamble",
       "coin"
-    ]
+    ],
+    "schema_version": 1
   },
   {
     "id": "tarnished_coin",
@@ -283,7 +303,8 @@
       "gamble"
     ],
     "desc": "Coins pay +2.",
-    "flavor": "It was never heads or tails."
+    "flavor": "It was never heads or tails.",
+    "schema_version": 1
   },
   {
     "id": "ashen_blade",
@@ -296,7 +317,8 @@
       "sword"
     ],
     "desc": "Swords deal +2 damage.",
-    "flavor": "Burns cleaner than it cuts."
+    "flavor": "Burns cleaner than it cuts.",
+    "schema_version": 1
   },
   {
     "id": "grave_moss",
@@ -309,7 +331,8 @@
       "sword"
     ],
     "desc": "Potions heal +2.",
-    "flavor": "It grows where the light gives up."
+    "flavor": "It grows where the light gives up.",
+    "schema_version": 1
   },
   {
     "id": "loaded_reel",
@@ -322,7 +345,8 @@
       "reel"
     ],
     "desc": "Start each fight with 6 block.",
-    "flavor": "The top reel is heavier than it looks."
+    "flavor": "The top reel is heavier than it looks.",
+    "schema_version": 1
   },
   {
     "id": "pact_ledger",
@@ -336,7 +360,8 @@
       "gamble"
     ],
     "desc": "Kills heal +2.",
-    "flavor": "Every name in it is paid."
+    "flavor": "Every name in it is paid.",
+    "schema_version": 1
   },
   {
     "id": "hollow_die",
@@ -349,7 +374,8 @@
       "gamble"
     ],
     "desc": "Carry 2 more relics.",
-    "flavor": "It rattles when you lie."
+    "flavor": "It rattles when you lie.",
+    "schema_version": 1
   },
   {
     "id": "widows_veil",
@@ -362,7 +388,8 @@
       "skull"
     ],
     "desc": "Skull penalty -2.",
-    "flavor": "She counts the skulls for you."
+    "flavor": "She counts the skulls for you.",
+    "schema_version": 1
   },
   {
     "id": "crown_of_thorns",
@@ -376,7 +403,8 @@
       "sword"
     ],
     "desc": "Each skull also deals +2 damage.",
-    "flavor": "Kings bleed too."
+    "flavor": "Kings bleed too.",
+    "schema_version": 1
   },
   {
     "id": "jackpot_engine",
@@ -390,7 +418,8 @@
       "reel"
     ],
     "desc": "Three swords on a row pay +10.",
-    "flavor": "The machine's favorite trick."
+    "flavor": "The machine's favorite trick.",
+    "schema_version": 1
   },
   {
     "id": "midas_touch",
@@ -404,6 +433,7 @@
       "gamble"
     ],
     "desc": "Damage taken pays +2 coins.",
-    "flavor": "Everything you lose, it keeps."
+    "flavor": "Everything you lose, it keeps.",
+    "schema_version": 1
   }
 ]

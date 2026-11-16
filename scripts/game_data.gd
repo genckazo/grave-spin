@@ -8,6 +8,7 @@ static var relics: Array = []
 static var enemies: Dictionary = {}
 static var fights: Array = []
 static var unlocks: Array = []
+const SCHEMA_VERSION := 1
 
 static func ensure_loaded() -> void:
 	if not config.is_empty():
@@ -21,6 +22,15 @@ static func ensure_loaded() -> void:
 	var unlock_data = _read_json("res://data/unlocks.json")
 	unlocks = unlock_data if unlock_data is Array else []
 
+static func _check_schema(path: String, parsed: Variant) -> void:
+	var v = null
+	if parsed is Dictionary:
+		v = parsed.get("schema_version")
+	elif parsed is Array and not parsed.is_empty() and parsed[0] is Dictionary:
+		v = parsed[0].get("schema_version")
+	if v != null and int(v) != SCHEMA_VERSION:
+		push_warning("Grave Spin: %s schema_version %s != loader %d (loading anyway)" % [path, str(v), SCHEMA_VERSION])
+
 static func _read_json(path: String) -> Variant:
 	var f := FileAccess.open(path, FileAccess.READ)
 	if f == null:
@@ -29,6 +39,8 @@ static func _read_json(path: String) -> Variant:
 	var parsed = JSON.parse_string(f.get_as_text())
 	if parsed == null:
 		push_error("Grave Spin: invalid JSON in " + path)
+		return parsed
+	_check_schema(path, parsed)
 	return parsed
 
 static func relic_by_id(id: String) -> Dictionary:

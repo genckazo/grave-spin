@@ -1,4 +1,5 @@
 {
+  "schema_version": 1,
   "player_hp": 52,
   "heal_between_fights": 9,
   "symbols": [

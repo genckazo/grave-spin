@@ -18,7 +18,8 @@
         "value": 9
       }
     ],
-    "intro": "A skeleton drags itself upright. The machine hums."
+    "intro": "A skeleton drags itself upright. The machine hums.",
+    "schema_version": 1
   },
   {
     "name": "Ooze of the Deep",
@@ -39,7 +40,8 @@
         "value": 8
       }
     ],
-    "intro": "Something wet settles into the reels."
+    "intro": "Something wet settles into the reels.",
+    "schema_version": 1
   },
   {
     "name": "The Whisperer",
@@ -60,7 +62,8 @@
         "value": 12
       }
     ],
-    "intro": "A hooded shape speaks a word you almost know."
+    "intro": "A hooded shape speaks a word you almost know.",
+    "schema_version": 1
   },
   {
     "name": "Grave Maw",
@@ -81,7 +84,8 @@
         "value": 9
       }
     ],
-    "intro": "The floor opens like a mouth."
+    "intro": "The floor opens like a mouth.",
+    "schema_version": 1
   },
   {
     "name": "Bone Captain",
@@ -103,7 +107,8 @@
         "value": 13
       }
     ],
-    "intro": "The floor is thick with the last crew."
+    "intro": "The floor is thick with the last crew.",
+    "schema_version": 1
   },
   {
     "name": "Grave Robber",
@@ -124,7 +129,8 @@
         "value": 13
       }
     ],
-    "intro": "It has been looting the dead for centuries."
+    "intro": "It has been looting the dead for centuries.",
+    "schema_version": 1
   },
   {
     "name": "Deep Ooze",
@@ -145,7 +151,8 @@
         "value": 10
       }
     ],
-    "intro": "The lower dark is hungrier."
+    "intro": "The lower dark is hungrier.",
+    "schema_version": 1
   },
   {
     "name": "Zealot",
@@ -166,7 +173,8 @@
         "value": 14
       }
     ],
-    "intro": "It prays to the machine. The machine listens."
+    "intro": "It prays to the machine. The machine listens.",
+    "schema_version": 1
   },
   {
     "name": "Rattling Horde",
@@ -187,7 +195,8 @@
         "value": 14
       }
     ],
-    "intro": "They come in waves now."
+    "intro": "They come in waves now.",
+    "schema_version": 1
   },
   {
     "name": "The Grave Warden",
@@ -209,7 +218,8 @@
         "value": 16
       }
     ],
-    "intro": "The machine was built to feed it. Tonight it eats."
+    "intro": "The machine was built to feed it. Tonight it eats.",
+    "schema_version": 1
   },
   {
     "name": "Ash Revenant",
@@ -230,7 +240,8 @@
         "value": 13
       }
     ],
-    "intro": "It remembers burning."
+    "intro": "It remembers burning.",
+    "schema_version": 1
   },
   {
     "name": "Cinder Slime",
@@ -251,7 +262,8 @@
         "value": 10
       }
     ],
-    "intro": "The floor is warm here."
+    "intro": "The floor is warm here.",
+    "schema_version": 1
   },
   {
     "name": "Hell Zealot",
@@ -272,7 +284,8 @@
         "value": 14
       }
     ],
-    "intro": "It sings to the machine in a dead language."
+    "intro": "It sings to the machine in a dead language.",
+    "schema_version": 1
   },
   {
     "name": "Grave Titan",
@@ -293,7 +306,8 @@
         "value": 14
       }
     ],
-    "intro": "The biggest one yet. It has your name."
+    "intro": "The biggest one yet. It has your name.",
+    "schema_version": 1
   },
   {
     "name": "The Hollow King",
@@ -315,6 +329,7 @@
         "value": 15
       }
     ],
-    "intro": "The machine was a throne. This is what sits on it."
+    "intro": "The machine was a throne. This is what sits on it.",
+    "schema_version": 1
   }
 ]

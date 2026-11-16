@@ -1,4 +1,5 @@
 {
+  "schema_version": 1,
   "skeleton": {
     "label": "SKELETON",
     "sprite": "res://assets/generated/skeleton.png",

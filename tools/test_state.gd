@@ -15,6 +15,7 @@ func _init() -> void:
 	_test_flow()
 	_test_endless()
 	_test_unlocks()
+	_test_schema_versions()
 	_test_meta_save()
 	var verdict := "PASS" if failures == 0 else "FAIL"
 	print("TESTS %s  failures=%d" % [verdict, failures])
@@ -66,7 +67,11 @@ func _test_data() -> void:
 	_check(String(GameData.fights[4]["name"]) == "Bone Captain" and bool(GameData.fights[4]["boss"]), "Bone Captain is the floor-1 boss")
 	_check(String(GameData.fights[9]["name"]) == "The Grave Warden" and int(GameData.fights[9]["hp"]) == 76 and bool(GameData.fights[9]["boss"]), "Grave Warden is the floor-2 boss at hp 76")
 	_check(String(GameData.fights[14]["name"]) == "The Hollow King" and int(GameData.fights[14]["hp"]) == 60 and int(GameData.fights[14]["floor"]) == 3 and bool(GameData.fights[14]["boss"]), "The Hollow King is the floor-3 final boss at hp 60")
-	_check(GameData.enemies.size() == 3, "3 enemy archetypes load")
+	var archetype_count := 0
+	for k in GameData.enemies.keys():
+		if k != "schema_version":
+			archetype_count += 1
+	_check(archetype_count == 3, "3 enemy archetypes load (excluding schema_version), got %d" % archetype_count)
 	for relic in GameData.relics:
 		var icon_path := "res://assets/generated/" + String(relic["icon"])
 		if not FileAccess.file_exists(icon_path):
@@ -314,6 +319,15 @@ func _test_unlocks() -> void:
 	var s := _fresh()
 	_check(s.max_hp == 52, "no meta (disabled): max_hp stays 52, got %d" % s.max_hp)
 	MetaSave.enabled = true
+
+
+func _test_schema_versions() -> void:
+	GameData.ensure_loaded()
+	_check(int(GameData.config.get("schema_version", 0)) == 1, "config schema_version 1")
+	_check(int(GameData.enemies.get("schema_version", 0)) == 1, "enemies schema_version 1")
+	_check(int(GameData.fights[0].get("schema_version", 0)) == 1, "fights schema_version 1")
+	_check(int(GameData.relics[0].get("schema_version", 0)) == 1, "relics schema_version 1")
+	_check(int(GameData.unlocks[0].get("schema_version", 0)) == 1, "unlocks schema_version 1")
 
 
 func _test_meta_save() -> void:

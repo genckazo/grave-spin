@@ -130,9 +130,9 @@ func _build_top_bar() -> void:
 
 	fight_text = UI.shadowed(UI.label("FIGHT 1 / 5", 8, UI.BONE, "header"))
 	fight_text.position = Vector2(294, 5)
-	fight_text.size = Vector2(130, 14)
+	fight_text.size = Vector2(150, 14)
 	shake_root.add_child(fight_text)
-	for i in range(5):
+	for i in range(state.fights.size()):
 		var pip := ColorRect.new()
 		pip.position = Vector2(296 + i * 14, 23)
 		pip.size = Vector2(10, 3)
@@ -434,7 +434,7 @@ func _refresh_all() -> void:
 	UI.set_bar(hp_bar, float(state.hp) / float(max(1, state.max_hp)))
 	block_text.text = str(state.block)
 	coin_text.text = str(state.coins)
-	fight_text.text = "FIGHT %d / %d" % [state.fight_index + 1, state.fights.size()]
+	fight_text.text = "FLOOR %d · FIGHT %d / %d" % [int(state.enemy.get("floor", 1)), state.fight_index + 1, state.fights.size()]
 	for i in range(pips.size()):
 		pips[i].color = UI.GOLD if i <= state.fight_index else Color("3a3244")
 

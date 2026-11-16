@@ -15,6 +15,7 @@ var hp: int = 52
 var max_hp: int = 52
 var coins: int = 0
 var block: int = 0
+var bet: int = 1
 
 var fight_index: int = 0
 var fights_won: int = 0
@@ -44,6 +45,7 @@ func start_run(seed_value: int = 0) -> void:
 	hp = max_hp
 	coins = 0
 	block = 0
+	bet = bet_min()
 	relics = []
 	fight_index = 0
 	fights_won = 0
@@ -75,6 +77,8 @@ func _start_fight() -> void:
 		"curse": String(archetype.get("curse", "")),
 		"intents": fight["intents"],
 		"intro": String(fight.get("intro", "")),
+		"floor": int(fight.get("floor", 1)),
+		"boss": bool(fight.get("boss", false)),
 	}
 	enemy_hp = int(fight["hp"])
 	enemy_block = 0
@@ -83,6 +87,21 @@ func _start_fight() -> void:
 	block = RelicEngine.total(self, "start_block")
 	_log(String(enemy["intro"]), "muted")
 	_log("Pull the lever. Survive the reels.", "gold")
+
+
+func bet_min() -> int:
+	return int(config.get("bet_min", 1)) if not config.is_empty() else 1
+
+
+func bet_max() -> int:
+	return int(config.get("bet_max", 5)) if not config.is_empty() else 5
+
+
+func set_bet(value: int) -> bool:
+	if value < bet_min() or value > bet_max():
+		return false
+	bet = value
+	return true
 
 
 func get_intent() -> Dictionary:

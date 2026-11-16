@@ -6,7 +6,7 @@ extends SceneTree
 ## PASS requires every seed's win rate inside the 40-60% band.
 
 const RUNS := 1000
-const SEEDS := [12345, 777, 2024]
+const SEEDS := [12345, 777, 2024, 99999, 31337]
 
 
 func _init() -> void:
@@ -38,9 +38,22 @@ func _init() -> void:
 					var outcome := s.on_enemy_defeated()
 					if outcome == "victory":
 						break
-					var opts := s.draft_options()
-					if opts.size() > 0:
-						s.choose_relic(opts[s.rng.randi_range(0, opts.size() - 1)])
+					if outcome == "shop":
+						var shop := s.open_shop()
+						var items: Array = shop["items"]
+						var buyable: Array = []
+						for it in items:
+							if String(it.get("kind", "")) != "consumable" and int(it.get("price", 0)) <= s.coins:
+								buyable.append(it)
+						if not buyable.is_empty():
+							var pick: Dictionary = buyable[s.rng.randi_range(0, buyable.size() - 1)]
+							s.buy_shop_item(items.find(pick))
+						s.leave_shop()
+						outcome = "draft"
+					if outcome == "draft":
+						var opts := s.draft_options()
+						if opts.size() > 0:
+							s.choose_relic(opts[s.rng.randi_range(0, opts.size() - 1)])
 					s.begin_next_fight()
 			if s.victory:
 				wins += 1

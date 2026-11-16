@@ -3,6 +3,7 @@ extends Control
 const TITLE_SCREEN := preload("res://scripts/screens/title_screen.gd")
 const FIGHT_SCREEN := preload("res://scripts/screens/fight_screen.gd")
 const DRAFT_SCREEN := preload("res://scripts/screens/draft_screen.gd")
+const SHOP_SCREEN := preload("res://scripts/screens/shop_screen.gd")
 const END_SCREEN := preload("res://scripts/screens/end_screen.gd")
 const CREDITS_SCREEN := preload("res://scripts/screens/credits_screen.gd")
 
@@ -123,12 +124,33 @@ func show_draft() -> void:
 	set_screen(s)
 
 
+func show_shop() -> void:
+	state.open_shop()
+	var s = SHOP_SCREEN.new()
+	s.main = self
+	s.state = state
+	set_screen(s)
+
+
+func on_shop_done() -> void:
+	if state == null or state.run_over:
+		return
+	state.leave_shop()
+	if state.draft_options().is_empty():
+		state.begin_next_fight()
+		show_fight()
+	else:
+		show_draft()
+
+
 func on_fight_won() -> void:
 	if state == null or state.run_over:
 		return
 	var outcome := state.on_enemy_defeated()
 	if outcome == "victory":
 		finish_run(true)
+	elif outcome == "shop":
+		show_shop()
 	elif state.draft_options().is_empty():
 		state.begin_next_fight()
 		show_fight()
@@ -194,6 +216,10 @@ func _run_autoplay() -> void:
 		elif current_screen is DraftScreen:
 			var draft := current_screen as DraftScreen
 			draft.debug_pick(0)
+			await get_tree().create_timer(0.02).timeout
+		elif current_screen is ShopScreen:
+			var shop := current_screen as ShopScreen
+			shop.debug_continue()
 			await get_tree().create_timer(0.02).timeout
 		elif current_screen is EndScreen:
 			reached_end = true

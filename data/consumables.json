@@ -1,0 +1,34 @@
+[
+  {
+    "id": "grave_chisel",
+    "name": "Grave Chisel",
+    "effect": "replace_symbol",
+    "target": "cell+symbol",
+    "desc": "Replace one symbol on one reel with a symbol of your choice.",
+    "schema_version": 1
+  },
+  {
+    "id": "rite_of_unmaking",
+    "name": "Rite of Unmaking",
+    "effect": "remove_skull",
+    "target": "cell",
+    "desc": "Remove one Skull from a reel; the slot becomes Blank.",
+    "schema_version": 1
+  },
+  {
+    "id": "oath_of_the_blade",
+    "name": "Oath of the Blade",
+    "effect": "level_symbol",
+    "target": "symbol",
+    "desc": "Level up a symbol type for the rest of the run: all Swords +1 damage (or the matching stat for another symbol).",
+    "schema_version": 1
+  },
+  {
+    "id": "second_pull",
+    "name": "Second Pull",
+    "effect": "free_reroll",
+    "target": "none",
+    "desc": "Reroll the current reels once for free, mid-fight.",
+    "schema_version": 1
+  }
+]

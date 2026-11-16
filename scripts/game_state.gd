@@ -39,6 +39,15 @@ var endless_depth: int = 0
 var difficulty := "normal"
 var tutorial_active := false
 var boss_rule := ""
+var shop_rerolls := 0
+var shop_interest := 0
+var shop_stock: Array = []
+var permanent_reroll_discount := 0
+var shop_relic_slots := 0
+var upgrades_owned: Array = []
+var consumables: Array = []
+var current_grid: Array = []
+var symbol_levels: Dictionary = {}
 var teach_seen: Dictionary = {}
 var diff_hp := 1.0
 var diff_atk := 1.0
@@ -87,6 +96,15 @@ func start_run(seed_value: int = 0, mode := "normal") -> void:
 	stats = {"spins": 0, "damage_dealt": 0, "damage_taken": 0, "healed": 0, "blocked": 0}
 	tutorial_active = false
 	teach_seen = {}
+	shop_rerolls = 0
+	shop_interest = 0
+	shop_stock = []
+	permanent_reroll_discount = 0
+	shop_relic_slots = 0
+	upgrades_owned = []
+	consumables = []
+	current_grid = []
+	symbol_levels = {}
 	if MetaSave.enabled:
 		var meta := MetaSave.load_meta()
 		tutorial_active = not bool(meta.get("tutorial_done", false)) and fight_index == 0
@@ -158,7 +176,7 @@ func get_intent() -> Dictionary:
 	var value := int(raw["value"])
 	if kind == "attack" or kind == "heavy":
 		value += enemy_power
-	var penalty := maxi(0, int(config["values"]["skull"]) - RelicEngine.total(self, "skull_reduction") - RelicEngine.synergy_bonus(self, "skull"))
+	var penalty := maxi(0, int(config["values"]["skull"]) + int(symbol_levels.get("skull", 0)) - RelicEngine.total(self, "skull_reduction") - RelicEngine.synergy_bonus(self, "skull"))
 	var title := ""
 	var sub := ""
 	match kind:
@@ -234,6 +252,7 @@ func roll() -> Dictionary:
 		last_jackpot = true
 		free_spin = true
 		_log("JACKPOT! The pity timer pays out — free re-spin.", "gold")
+	current_grid = grid.duplicate(true)
 	return {"grid": grid, "near_miss": near_miss, "jackpot": jackpot, "rigged": rigged or scripted, "scripted": scripted}
 
 
@@ -253,6 +272,10 @@ func resolve(grid: Array) -> Dictionary:
 		return {}
 	stats["spins"] += 1
 	var values: Dictionary = config["values"]
+	var sword_val := int(values["sword"]) + int(symbol_levels.get("sword", 0))
+	var shield_val_base := int(values["shield"]) + int(symbol_levels.get("shield", 0))
+	var potion_val := int(values["potion"]) + int(symbol_levels.get("potion", 0))
+	var coin_val := int(values["coin"]) + int(symbol_levels.get("coin", 0))
 	var sword_bonus := RelicEngine.total(self, "sword_bonus")
 	var block_bonus := RelicEngine.total(self, "block_bonus")
 	var heal_bonus := RelicEngine.total(self, "heal_bonus")
@@ -304,7 +327,7 @@ func resolve(grid: Array) -> Dictionary:
 				"coin": co += 1
 				"skull": sk += 1
 
-		var dmg := sw * (int(values["sword"]) + sword_bonus) * last_bet
+		var dmg := sw * (sword_val + sword_bonus) * last_bet
 		if last_jackpot and sw == 3:
 			dmg *= 2
 			_log("Jackpot: the payline pays double.", "gold")
@@ -321,20 +344,20 @@ func resolve(grid: Array) -> Dictionary:
 		report["damage"] += applied
 		stats["damage_dealt"] += applied
 
-		var heal_amount := po * (int(values["potion"]) + heal_bonus)
+		var heal_amount := po * (potion_val + heal_bonus)
 		var before_hp := hp
 		hp = min(max_hp, hp + heal_amount)
 		var healed := hp - before_hp
 		report["heal"] += healed
 		stats["healed"] += healed
 
-		var coin_gain := co * (int(values["coin"]) + coin_bonus) * last_bet
+		var coin_gain := co * (coin_val + coin_bonus) * last_bet
 		if boss_rule == "greed_tax":
 			coin_gain *= 2
 		coins += coin_gain
 		report["coins"] += coin_gain
 
-		var shield_value := 0 if boss_rule == "thin_shield" else int(values["shield"])
+		var shield_value := 0 if boss_rule == "thin_shield" else shield_val_base
 		var block_gain := sh * (shield_value + (0 if boss_rule == "thin_shield" else block_bonus))
 		block += block_gain
 		report["block"] += block_gain
@@ -379,7 +402,7 @@ func resolve(grid: Array) -> Dictionary:
 
 	var intent := get_intent()
 	report["intent"] = intent
-	var penalty := maxi(0, int(values["skull"]) - RelicEngine.total(self, "skull_reduction") - RelicEngine.synergy_bonus(self, "skull")) * last_bet
+	var penalty := maxi(0, int(values["skull"]) + int(symbol_levels.get("skull", 0)) - RelicEngine.total(self, "skull_reduction") - RelicEngine.synergy_bonus(self, "skull")) * last_bet
 	report["skull_penalty"] = penalty
 
 	var skull_count := total_skulls
@@ -449,6 +472,10 @@ func on_enemy_defeated() -> String:
 	if kill_heal > 0:
 		hp = min(max_hp, hp + kill_heal)
 		_log("Vampiric Edge: +%d HP." % kill_heal, "good")
+	if bool(enemy.get("boss", false)):
+		if not GameData.consumables.is_empty() and rng.randf() < float(GameData.shop.get("boss_drop_chance", 0.5)):
+			_add_random_consumable()
+		return "shop"
 	return "draft"
 
 
@@ -480,7 +507,7 @@ func _endless_fight(depth: int) -> Dictionary:
 
 
 func draft_options() -> Array:
-	var cap := int(config["max_relics"]) + RelicEngine.total(self, "max_relics_bonus")
+	var cap := int(config["max_relics"]) + RelicEngine.total(self, "max_relics_bonus") + shop_relic_slots
 	if relics.size() >= cap:
 		return []
 	var owned := relic_ids()
@@ -624,11 +651,11 @@ func build_sequence(grid: Array) -> Array:
 	var values: Dictionary = config["values"]
 	var steps: Array = []
 	var tally := {"damage": 0, "block": 0, "self_damage": 0, "heal": 0, "coins": 0}
-	var sword_bonus := RelicEngine.total(self, "sword_bonus") + RelicEngine.total(self, "all_bonus") + RelicEngine.synergy_bonus(self, "sword")
-	var block_bonus := RelicEngine.total(self, "block_bonus") + RelicEngine.total(self, "all_bonus")
-	var heal_bonus := RelicEngine.total(self, "heal_bonus") + RelicEngine.total(self, "all_bonus")
-	var coin_bonus := RelicEngine.total(self, "coin_bonus") + RelicEngine.total(self, "all_bonus") + RelicEngine.synergy_bonus(self, "coin")
-	var penalty := maxi(0, int(values["skull"]) - RelicEngine.total(self, "skull_reduction") - RelicEngine.synergy_bonus(self, "skull")) * last_bet
+	var sword_bonus := RelicEngine.total(self, "sword_bonus") + RelicEngine.total(self, "all_bonus") + RelicEngine.synergy_bonus(self, "sword") + int(symbol_levels.get("sword", 0))
+	var block_bonus := RelicEngine.total(self, "block_bonus") + RelicEngine.total(self, "all_bonus") + int(symbol_levels.get("shield", 0))
+	var heal_bonus := RelicEngine.total(self, "heal_bonus") + RelicEngine.total(self, "all_bonus") + int(symbol_levels.get("potion", 0))
+	var coin_bonus := RelicEngine.total(self, "coin_bonus") + RelicEngine.total(self, "all_bonus") + RelicEngine.synergy_bonus(self, "coin") + int(symbol_levels.get("coin", 0))
+	var penalty := maxi(0, int(values["skull"]) + int(symbol_levels.get("skull", 0)) - RelicEngine.total(self, "skull_reduction") - RelicEngine.synergy_bonus(self, "skull")) * last_bet
 	var skulls := 0
 	for r in range(grid.size()):
 		var row: Array = grid[r]
@@ -664,3 +691,191 @@ func build_sequence(grid: Array) -> Array:
 		steps.append({"kind": "relic", "slot": i, "id": String(r.get("id", "")), "name": String(r.get("name", "")), "desc": String(r.get("text", "")), "tally": tally.duplicate()})
 	steps.append({"kind": "total", "tally": tally.duplicate(), "skulls": skulls, "desc": "Final: %d damage, %d block, %d self-damage" % [tally["damage"], tally["block"], tally["self_damage"]]})
 	return steps
+
+
+# ------------------------------------------------------------------ shop (SYS4)
+
+func open_shop() -> Dictionary:
+	## A shop opens after every boss fight. Interest is paid once on entry,
+	## the reroll cost starts fresh each visit.
+	_teach("first_shop")
+	shop_rerolls = 0
+	shop_interest = mini(int(GameData.shop.get("interest_cap", 5)), coins / int(GameData.shop.get("interest_per", 10)))
+	coins += shop_interest
+	if shop_interest > 0:
+		_log("Interest: +%d coins." % shop_interest, "gold")
+	shop_stock = []
+	for r in draft_options():
+		var item: Dictionary = r.duplicate()
+		item["kind"] = "relic"
+		item["price"] = rng.randi_range(int(GameData.shop.get("relic_price_min", 8)), int(GameData.shop.get("relic_price_max", 14)))
+		shop_stock.append(item)
+	var pool: Array = GameData.consumables.duplicate()
+	_shuffle(pool)
+	for i in range(mini(2, pool.size())):
+		var item: Dictionary = pool[i].duplicate()
+		item["kind"] = "consumable"
+		item["price"] = int(GameData.shop.get("consumable_price", 5))
+		shop_stock.append(item)
+	var ups: Array = []
+	for u in GameData.shop.get("upgrades", []):
+		if not upgrades_owned.has(String(u["id"])):
+			ups.append(u)
+	if not ups.is_empty():
+		var up: Dictionary = ups[rng.randi_range(0, ups.size() - 1)].duplicate()
+		up["kind"] = "upgrade"
+		shop_stock.append(up)
+	return {"items": shop_stock, "reroll_cost": shop_reroll_cost(), "interest": shop_interest, "coins": coins}
+
+
+func shop_reroll_cost() -> int:
+	return maxi(1, int(GameData.shop.get("reroll_start", 2)) + shop_rerolls * int(GameData.shop.get("reroll_step", 1)) - permanent_reroll_discount)
+
+
+func reroll_shop() -> bool:
+	var cost := shop_reroll_cost()
+	if coins < cost:
+		return false
+	coins -= cost
+	shop_rerolls += 1
+	_log("Rerolled the shop for %d coins." % cost, "bone")
+	var kept: Array = []
+	for item in shop_stock:
+		if String(item.get("kind", "")) == "upgrade":
+			kept.append(item)
+	shop_stock = kept
+	for r in draft_options():
+		var item: Dictionary = r.duplicate()
+		item["kind"] = "relic"
+		item["price"] = rng.randi_range(int(GameData.shop.get("relic_price_min", 8)), int(GameData.shop.get("relic_price_max", 14)))
+		shop_stock.append(item)
+	var pool: Array = GameData.consumables.duplicate()
+	_shuffle(pool)
+	for i in range(mini(2, pool.size())):
+		var item: Dictionary = pool[i].duplicate()
+		item["kind"] = "consumable"
+		item["price"] = int(GameData.shop.get("consumable_price", 5))
+		shop_stock.append(item)
+	return true
+
+
+func buy_shop_item(index: int) -> bool:
+	if index < 0 or index >= shop_stock.size():
+		return false
+	var item: Dictionary = shop_stock[index]
+	var price := int(item.get("price", 0))
+	if coins < price:
+		return false
+	var kind := String(item.get("kind", ""))
+	if kind == "relic":
+		coins -= price
+		relics.append(item)
+		_teach("first_relic")
+		var hp_cost := int(item.get("value2", 0))
+		if String(item.get("rarity", "")) == "cursed" and hp_cost > 0:
+			max_hp = max(20, max_hp - hp_cost)
+			hp = min(hp, max_hp)
+	elif kind == "consumable":
+		if not add_consumable(String(item["id"])):
+			return false
+		coins -= price
+	elif kind == "upgrade":
+		coins -= price
+		upgrades_owned.append(String(item["id"]))
+		var effect := String(item.get("effect", ""))
+		if effect == "max_relics_shop":
+			shop_relic_slots += int(item.get("value", 1))
+		elif effect == "reroll_discount":
+			permanent_reroll_discount += int(item.get("value", 1))
+		elif effect == "max_hp_shop":
+			max_hp += int(item.get("value", 8))
+			hp = min(max_hp, hp + int(item.get("value", 8)))
+	else:
+		return false
+	if kind != "":
+		_log("Bought %s for %d coins." % [String(item["name"]), price], "gold")
+	shop_stock.remove_at(index)
+	return true
+
+
+func leave_shop() -> void:
+	shop_stock = []
+
+
+# ------------------------------------------------------------- consumables (SYS5)
+
+func max_consumables() -> int:
+	return int(GameData.shop.get("max_consumables", 2))
+
+
+func add_consumable(id: String) -> bool:
+	if consumables.size() >= max_consumables():
+		return false
+	consumables.append(id)
+	return true
+
+
+func _add_random_consumable() -> bool:
+	var id := String(GameData.consumables[rng.randi_range(0, GameData.consumables.size() - 1)]["id"])
+	if add_consumable(id):
+		_log("The boss drops a %s." % String(GameData.consumable_by_id(id).get("name", id)), "good")
+		return true
+	return false
+
+
+func use_consumable(index: int, target: Dictionary = {}) -> bool:
+	## Usable any time outside a spin animation. Target depends on the effect:
+	## replace_symbol {row,col,symbol}, remove_skull {row,col},
+	## level_symbol {symbol}, free_reroll {}.
+	if index < 0 or index >= consumables.size() or run_over:
+		return false
+	var c: Dictionary = GameData.consumable_by_id(String(consumables[index]))
+	if c.is_empty():
+		return false
+	var ok := false
+	match String(c.get("effect", "")):
+		"replace_symbol":
+			var r := int(target.get("row", -1))
+			var col := int(target.get("col", -1))
+			var sym := String(target.get("symbol", ""))
+			if not current_grid.is_empty() and r >= 0 and r < current_grid.size() and col >= 0 and col < current_grid[r].size() and SYMBOLS.has(sym):
+				current_grid[r][col] = sym
+				ok = true
+		"remove_skull":
+			var r := int(target.get("row", -1))
+			var col := int(target.get("col", -1))
+			if not current_grid.is_empty() and r >= 0 and r < current_grid.size() and col >= 0 and col < current_grid[r].size() and String(current_grid[r][col]) == "skull":
+				current_grid[r][col] = "blank"
+				ok = true
+		"level_symbol":
+			var sym := String(target.get("symbol", ""))
+			if SYMBOLS.has(sym):
+				symbol_levels[sym] = int(symbol_levels.get(sym, 0)) + 1
+				ok = true
+		"free_reroll":
+			if not current_grid.is_empty():
+				current_grid = _roll_grid_only()
+				ok = true
+	if ok:
+		consumables.remove_at(index)
+		_teach("first_consumable")
+		_log("Used %s." % String(c.get("name", "")), "gold")
+	return ok
+
+
+func _roll_grid_only() -> Array:
+	## A free mid-fight reroll of the current reels: same generator as roll()
+	## without touching coins, spin count or pity.
+	var weights: Dictionary = (config["weights"] as Dictionary).duplicate()
+	weights["skull"] = int(weights.get("skull", 0)) + int(enemy.get("skull_extra", 0))
+	var grid: Array = []
+	for r in range(3):
+		var row: Array = []
+		for c in range(3):
+			row.append(_pick_symbol(weights))
+		grid.append(row)
+	if boss_rule == "jammed_reel":
+		for r in range(grid.size()):
+			if grid[r].size() > 2:
+				grid[r][2] = "skull"
+	return grid

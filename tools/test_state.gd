@@ -17,6 +17,8 @@ func _init() -> void:
 	_test_unlocks()
 	_test_boss_rules()
 	_test_sequencing()
+	_test_shop()
+	_test_consumables()
 	_test_tutorial_tooltips()
 	_test_loc_and_settings()
 	_test_achievements()
@@ -427,6 +429,167 @@ func _test_sequencing() -> void:
 	var rep2: Dictionary = g2.resolve([["sword","coin","skull"],["shield","potion","coin"],["sword","sword","skull"]])
 	_check(bool(rep2.get("fast", false)), "fast mode from settings flows into report")
 	MetaSave.path = old_path
+
+
+func _test_shop() -> void:
+	GameData.ensure_loaded()
+	_check(GameData.shop.get("reroll_start", 0) == 2 and GameData.shop.get("reroll_step", 0) == 1, "shop config: reroll starts at 2, +1 per reroll")
+	_check(int(GameData.shop.get("interest_per", 0)) == 10 and int(GameData.shop.get("interest_cap", 0)) == 5, "shop config: interest +1 per 10 held, cap 5")
+	_check(GameData.shop.get("upgrades", []).size() == 3, "3 permanent upgrades defined")
+	# boss fight routes to shop, non-boss to draft
+	var boss := _fresh()
+	boss.fight_index = 4
+	boss._start_fight()
+	_check(bool(boss.enemy.get("boss", false)), "fight 5 is a boss")
+	boss.enemy_hp = 1
+	boss.resolve(_grid("sword"))
+	var boss_outcome: String = boss.on_enemy_defeated()
+	_check(boss_outcome == "shop", "defeating a boss opens the shop, got %s" % boss_outcome)
+	# interest math: 47 coins -> +4, capped at +5
+	var s := _fresh()
+	s.coins = 47
+	var shop := s.open_shop()
+	_check(int(shop["interest"]) == 4 and s.coins == 51, "interest +4 on 47 coins (cap 5 not hit), coins 51, got %d" % s.coins)
+	_check(s.teach_seen.get("first_shop", false), "first shop visit teaches")
+	var s2 := _fresh()
+	s2.coins = 99
+	var shop2 := s2.open_shop()
+	_check(int(shop2["interest"]) == 5 and s2.coins == 104, "interest capped at +5 on 99 coins, coins 104, got %d" % s2.coins)
+	# reroll cost curve: 2, 3, 4 within a visit, resets next visit
+	var s3 := _fresh()
+	s3.coins = 50
+	s3.open_shop()
+	_check(s3.coins == 55, "interest +5 paid on entry (50 -> 55), got %d" % s3.coins)
+	_check(s3.shop_reroll_cost() == 2, "reroll starts at 2, got %d" % s3.shop_reroll_cost())
+	_check(s3.reroll_shop() and s3.coins == 53 and s3.shop_reroll_cost() == 3, "first reroll costs 2, next costs 3")
+	_check(s3.reroll_shop() and s3.coins == 50 and s3.shop_reroll_cost() == 4, "second reroll costs 3, next costs 4")
+	s3.leave_shop()
+	s3.open_shop()
+	_check(s3.shop_reroll_cost() == 2, "reroll cost resets on the next shop visit")
+	# not enough coins -> reroll refused
+	var s4 := _fresh()
+	s4.coins = 1
+	s4.open_shop()
+	_check(not s4.reroll_shop() and s4.coins == 1, "reroll refused without enough coins")
+	# stock contents: relics priced, at most one upgrade, consumables priced
+	var s5 := _fresh()
+	s5.coins = 100
+	var shop5 := s5.open_shop()
+	var items: Array = shop5["items"]
+	var n_relics := 0
+	var n_cons := 0
+	var n_ups := 0
+	for it in items:
+		match String(it.get("kind", "")):
+			"relic":
+				n_relics += 1
+				_check(int(it["price"]) >= 8 and int(it["price"]) <= 14, "relic priced 8-14, got %d" % int(it["price"]))
+			"consumable":
+				n_cons += 1
+				_check(int(it["price"]) == 5, "consumable priced 5")
+			"upgrade":
+				n_ups += 1
+	_check(n_relics == 3 and n_ups == 1 and n_cons <= 2, "shop stock: 3 relics, 1 upgrade (max 1 per shop), <=2 consumables, got %d/%d/%d" % [n_relics, n_ups, n_cons])
+	# buying: relic purchase deducts coins and adds relic; upgrade effects apply
+	var s6 := _fresh()
+	s6.coins = 100
+	var shop6 := s6.open_shop()
+	_check(s6.coins == 105, "interest +5 on 100 coins at entry")
+	var relic_idx := -1
+	var up_idx := -1
+	for i in range(shop6["items"].size()):
+		var it: Dictionary = shop6["items"][i]
+		if String(it["kind"]) == "relic" and relic_idx < 0:
+			relic_idx = i
+		if String(it["kind"]) == "upgrade":
+			up_idx = i
+	var up: Dictionary = shop6["items"][up_idx]
+	var up_price := int(up["price"])
+	var hp_before := s6.max_hp
+	_check(s6.buy_shop_item(up_idx) and s6.coins == 105 - up_price, "buying the upgrade deducts its price")
+	var relic_price := int(shop6["items"][relic_idx]["price"])
+	_check(s6.buy_shop_item(relic_idx) and s6.coins == 105 - up_price - relic_price and s6.relics.size() == 1, "buying a relic deducts its price and adds it")
+	match String(up["effect"]):
+		"max_hp_shop":
+			_check(s6.max_hp == hp_before + 8, "Grave Feast: +8 max HP")
+		"max_relics_shop":
+			_check(s6.shop_relic_slots == 1, "Extra Belt Loop: +1 relic slot")
+		"reroll_discount":
+			_check(s6.permanent_reroll_discount == 1 and s6.shop_reroll_cost() == 1, "Haggler's Charm: reroll cost 2-1=1 (min 1)")
+	# upgrade already owned this run -> not offered again
+	s6.leave_shop()
+	var shop6b := s6.open_shop()
+	for it in shop6b["items"]:
+		_check(String(it.get("kind", "")) != "upgrade" or String(it.get("id", "")) != String(up["id"]), "owned upgrade not re-offered")
+	# too poor to buy
+	var s7 := _fresh()
+	s7.coins = 0
+	var shop7 := s7.open_shop()
+	_check(not shop7["items"].is_empty() and not s7.buy_shop_item(0), "cannot buy with 0 coins")
+
+
+func _test_consumables() -> void:
+	GameData.ensure_loaded()
+	_check(GameData.consumables.size() >= 4, "at least 4 consumables defined, got %d" % GameData.consumables.size())
+	for c in GameData.consumables:
+		var e := GameData.tooltip("consumable:" + String(c["id"]))
+		_check(not e.is_empty() and String(e.get("text", "")) != "", "tooltip for consumable %s" % String(c["id"]))
+	var s := _fresh()
+	s.coins = 10
+	s.roll()
+	_check(s.consumables.size() == 0, "no consumables at run start")
+	_check(s.add_consumable("grave_chisel") and s.add_consumable("second_pull"), "two consumables fit")
+	_check(not s.add_consumable("rite_of_unmaking"), "inventory capped at 2")
+	# a) replace one symbol with chosen symbol
+	var g: Array = s.current_grid
+	var r0c0 := String(g[0][0])
+	var new_sym := "sword" if r0c0 != "sword" else "coin"
+	_check(s.use_consumable(0, {"row": 0, "col": 0, "symbol": new_sym}), "grave_chisel applied")
+	_check(String(s.current_grid[0][0]) == new_sym, "cell replaced with chosen symbol")
+	var s_inv := _fresh()
+	s_inv.roll()
+	s_inv.consumables = ["grave_chisel"]
+	_check(not s_inv.use_consumable(0, {"row": 0, "col": 0, "symbol": "bogus"}), "invalid symbol refused")
+	_check(s_inv.consumables.size() == 1, "refused use keeps the consumable")
+	# b) remove one skull -> blank
+	var s2 := _fresh()
+	s2.roll()
+	s2.current_grid = [["skull", "coin", "shield"], ["sword", "potion", "coin"], ["sword", "sword", "coin"]]
+	s2.consumables = ["rite_of_unmaking"]
+	_check(s2.use_consumable(0, {"row": 0, "col": 0}), "rite_of_unmaking applied to a skull")
+	_check(String(s2.current_grid[0][0]) == "blank", "skull slot becomes Blank")
+	_check(not s2.use_consumable(0, {"row": 1, "col": 0}), "cannot remove a non-skull (and none left)")
+	# blank resolves as nothing
+	s2.enemy_hp = 999
+	var rep2: Dictionary = s2.resolve(s2.current_grid)
+	_check(int(rep2["skulls"]) == 0 and int(rep2["damage"]) == 9, "blank row 0: no skull penalty, rows deal 0+3+6=9, got %d/%d" % [int(rep2["skulls"]), int(rep2["damage"])])
+	# c) level up a symbol type for the rest of the run
+	var s3 := _fresh()
+	s3.consumables = ["oath_of_the_blade"]
+	s3.enemy_hp = 999
+	var before: Dictionary = s3.resolve(_grid("sword"))
+	_check(int(before["damage"]) == 27, "baseline 27 sword damage")
+	_check(s3.use_consumable(0, {"symbol": "sword"}), "oath_of_the_blade applied")
+	s3.enemy_hp = 999
+	var after: Dictionary = s3.resolve(_grid("sword"))
+	_check(int(after["damage"]) == 36, "all swords +1: 36 damage, got %d" % int(after["damage"]))
+	# d) free reroll mid-fight: no coin cost, no spin count change
+	var s4 := _fresh()
+	s4.coins = 10
+	s4.roll()
+	var spins_before := s4.spin_count
+	var coins_before := s4.coins
+	s4.consumables = ["second_pull"]
+	var old_grid: Array = s4.current_grid.duplicate(true)
+	_check(s4.use_consumable(0, {}), "second_pull applied")
+	_check(s4.spin_count == spins_before and s4.coins == coins_before, "free reroll: spin count and coins unchanged")
+	_check(s4.current_grid.size() == 3, "reels rerolled to a new grid")
+	# teach on first consumable use
+	var s5 := _fresh()
+	s5.roll()
+	s5.consumables = ["oath_of_the_blade"]
+	s5.use_consumable(0, {"symbol": "coin"})
+	_check(s5.teach_seen.get("first_consumable", false), "first consumable use teaches")
 
 
 func _test_tutorial_tooltips() -> void:

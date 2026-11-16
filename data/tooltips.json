@@ -3,23 +3,23 @@
   "entries": {
     "symbol:sword": {
       "name": "Sword",
-      "text": "Sword \u2014 deals damage to the enemy, times your bet."
+      "text": "Sword — deals damage to the enemy, times your bet."
     },
     "symbol:shield": {
       "name": "Shield",
-      "text": "Shield \u2014 gives block that absorbs the enemy's next attack."
+      "text": "Shield — gives block that absorbs the enemy's next attack."
     },
     "symbol:potion": {
       "name": "Potion",
-      "text": "Potion \u2014 heals HP."
+      "text": "Potion — heals HP."
     },
     "symbol:coin": {
       "name": "Coin",
-      "text": "Coin \u2014 pays coins, times your bet."
+      "text": "Coin — pays coins, times your bet."
     },
     "symbol:skull": {
       "name": "Skull",
-      "text": "Skull \u2014 when the enemy attacks, each skull adds damage to YOU."
+      "text": "Skull — when the enemy attacks, each skull adds damage to YOU."
     },
     "relic:whetstone": {
       "name": "Whetstone",
@@ -152,6 +152,22 @@
     "enemy:cultist": {
       "name": "CULTIST",
       "text": "It has already counted your bones. Skulls on your reels add +4 to its attacks."
+    },
+    "consumable:grave_chisel": {
+      "name": "Grave Chisel",
+      "text": "Replace one symbol on one reel with a symbol of your choice. Click the consumable, then a reel symbol, then confirm."
+    },
+    "consumable:rite_of_unmaking": {
+      "name": "Rite of Unmaking",
+      "text": "Remove one Skull from a reel; the slot becomes Blank and does nothing."
+    },
+    "consumable:oath_of_the_blade": {
+      "name": "Oath of the Blade",
+      "text": "Level up a symbol type for the rest of the run: every Sword +1 damage (Shield +1 block, Potion +1 heal, Coin +1 coin, Skull +1 penalty)."
+    },
+    "consumable:second_pull": {
+      "name": "Second Pull",
+      "text": "Reroll the current reels once for free, mid-fight. No coins spent."
     }
   }
 }

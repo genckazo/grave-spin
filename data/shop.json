@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "interest_per": 10,
+  "interest_cap": 5,
+  "reroll_start": 2,
+  "reroll_step": 1,
+  "relic_price_min": 8,
+  "relic_price_max": 14,
+  "consumable_price": 5,
+  "max_consumables": 2,
+  "boss_drop_chance": 0.5,
+  "upgrades": [
+    {
+      "id": "relic_slot",
+      "name": "Extra Belt Loop",
+      "effect": "max_relics_shop",
+      "value": 1,
+      "price": 18,
+      "desc": "+1 relic slot for the rest of the run."
+    },
+    {
+      "id": "reroll_discount",
+      "name": "Haggler's Charm",
+      "effect": "reroll_discount",
+      "value": 1,
+      "price": 12,
+      "desc": "Shop rerolls cost 1 less (minimum 1), every shop."
+    },
+    {
+      "id": "max_hp_8",
+      "name": "Grave Feast",
+      "effect": "max_hp_shop",
+      "value": 8,
+      "price": 10,
+      "desc": "+8 max HP and heal 8 right now."
+    }
+  ]
+}

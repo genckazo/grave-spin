@@ -45,3 +45,8 @@ Choices made where the brief left room; simpler option taken on ambiguity.
 - Inventory cap 2; sold in shop (1 random per visit) and 50% boss drop.
 - Gilded Chisel (replace one symbol) 8c, Bone Saw (remove one Skull -> Blank) 6c, Whetstone Oil (level a symbol type for the run) 10c, Loaded Spring (free reroll mid-fight) 7c.
 - Tuned against the 1000-run sim gate: heal_between_fights 16 (was 15) to keep seed 777 in the 40-60% band after SYS5 RNG-stream shifts; normal 45.9/40.8/46.3% IN, high_roller 22.0/23.9/23.0% in 15-35% IN.
+
+## Shop wiring + relic prices (JOB 1)
+- Shop screen (scripts/screens/shop_screen.gd) opens after boss fights 5 and 10 (fight index 4 / 9) via GameState.shop_pending; leaving starts the next fight.
+- Shop relic prices by rarity (relics had no price field; draft stays free): common 10c, rare 16c, cursed 8c, epic 22c.
+- Reroll re-deals relics + consumable stock; price resets on the next visit.

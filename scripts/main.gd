@@ -5,6 +5,7 @@ const FIGHT_SCREEN := preload("res://scripts/screens/fight_screen.gd")
 const DRAFT_SCREEN := preload("res://scripts/screens/draft_screen.gd")
 const END_SCREEN := preload("res://scripts/screens/end_screen.gd")
 const CREDITS_SCREEN := preload("res://scripts/screens/credits_screen.gd")
+const SHOP_SCREEN := preload("res://scripts/screens/shop_screen.gd")
 
 var state: GameState
 var meta: Dictionary = {}
@@ -123,6 +124,20 @@ func show_draft() -> void:
 	set_screen(s)
 
 
+func show_shop() -> void:
+	var s = SHOP_SCREEN.new()
+	s.main = self
+	s.state = state
+	set_screen(s)
+
+
+func on_shop_done() -> void:
+	if state == null or state.run_over:
+		return
+	state.begin_next_fight()
+	show_fight()
+
+
 func on_fight_won() -> void:
 	if state == null or state.run_over:
 		return
@@ -130,8 +145,12 @@ func on_fight_won() -> void:
 	if outcome == "victory":
 		finish_run(true)
 	elif state.draft_options().is_empty():
-		state.begin_next_fight()
-		show_fight()
+		if state.shop_pending:
+			state.shop_pending = false
+			show_shop()
+		else:
+			state.begin_next_fight()
+			show_fight()
 	else:
 		show_draft()
 
@@ -140,8 +159,12 @@ func on_relic_chosen(relic: Dictionary) -> void:
 	if state == null or state.run_over:
 		return
 	state.choose_relic(relic)
-	state.begin_next_fight()
-	show_fight()
+	if state.shop_pending:
+		state.shop_pending = false
+		show_shop()
+	else:
+		state.begin_next_fight()
+		show_fight()
 
 
 func finish_run(victory: bool) -> void:
@@ -194,6 +217,10 @@ func _run_autoplay() -> void:
 		elif current_screen is DraftScreen:
 			var draft := current_screen as DraftScreen
 			draft.debug_pick(0)
+			await get_tree().create_timer(0.02).timeout
+		elif current_screen is ShopScreen:
+			var shop := current_screen as ShopScreen
+			shop.debug_leave()
 			await get_tree().create_timer(0.02).timeout
 		elif current_screen is EndScreen:
 			reached_end = true

@@ -40,6 +40,8 @@ var difficulty := "normal"
 var tutorial_active := false
 var boss_rule := ""
 var shop_rerolls := 0
+var shop_pending := false
+var shop_stock: Dictionary = {}
 var shop_upgrades_bought: Array = []
 var shop_interest := 0
 var permanent_reroll_discount := 0
@@ -91,6 +93,8 @@ func start_run(seed_value: int = 0, mode := "normal") -> void:
 	run_over = false
 	victory = false
 	endless_depth = 0
+	shop_pending = false
+	shop_stock = {}
 	logs = []
 	stats = {"spins": 0, "damage_dealt": 0, "damage_taken": 0, "healed": 0, "blocked": 0}
 	tutorial_active = false
@@ -461,6 +465,7 @@ func on_enemy_defeated() -> String:
 	if kill_heal > 0:
 		hp = min(max_hp, hp + kill_heal)
 		_log("Vampiric Edge: +%d HP." % kill_heal, "good")
+	shop_pending = bool(enemy.get("boss", false)) and (fight_index == 4 or fight_index == 9)
 	if bool(enemy.get("boss", false)) and consumables.size() < 2 and rng.randf() < 0.5 and not GameData.consumables.is_empty():
 		var drop: Dictionary = GameData.consumables[rng.randi() % GameData.consumables.size()]
 		consumables.append(String(drop["id"]))
@@ -522,7 +527,7 @@ func choose_relic(relic: Dictionary) -> void:
 func relic_ids() -> Array:
 	var ids: Array = []
 	for r in relics:
-		ids.append(String(r["id"]))
+		ids.append(String(r["id"]) if r is Dictionary else String(r))
 	return ids
 
 
@@ -687,24 +692,25 @@ func build_sequence(grid: Array) -> Array:
 
 func open_shop() -> Dictionary:
 	## Shop visit: interest paid once on entry, reroll cost scales per visit,
-	## resets on the next shop. Teaches on first visit.
+	## resets on the next shop. Teaches on first visit. Stock is kept in
+	## shop_stock so reroll_shop() can re-deal it.
 	_teach("first_shop")
 	shop_rerolls = 0
 	shop_upgrades_bought = []
 	shop_interest = mini(5, coins / 10)
 	coins += shop_interest
-	var consumable_stock := ""
+	shop_stock = {"interest": shop_interest, "coins": coins, "upgrades": _shop_upgrades()}
+	_shop_restock()
+	return shop_stock
+
+
+func _shop_restock() -> void:
+	shop_stock["relics"] = draft_options()
+	shop_stock["consumable"] = ""
 	if not GameData.consumables.is_empty():
-		consumable_stock = String(GameData.consumables[rng.randi() % GameData.consumables.size()]["id"])
-	var stock := {
-		"relics": draft_options(),
-		"upgrades": _shop_upgrades(),
-		"consumable": consumable_stock,
-		"reroll_cost": shop_reroll_cost(),
-		"interest": shop_interest,
-		"coins": coins,
-	}
-	return stock
+		shop_stock["consumable"] = String(GameData.consumables[rng.randi() % GameData.consumables.size()]["id"])
+	shop_stock["reroll_cost"] = shop_reroll_cost()
+	shop_stock["coins"] = coins
 
 
 func shop_reroll_cost() -> int:
@@ -725,6 +731,41 @@ func reroll_shop() -> bool:
 		return false
 	coins -= cost
 	shop_rerolls += 1
+	_shop_restock()
+	return true
+
+
+func relic_price(relic: Dictionary) -> int:
+	match String(relic.get("rarity", "common")):
+		"rare": return 16
+		"cursed": return 8
+		"epic": return 22
+		_: return 10
+
+
+func buy_relic(id: String) -> bool:
+	var r := GameData.relic_by_id(id)
+	if r.is_empty() or has_relic(id):
+		return false
+	if relics.size() >= shop_relic_cap():
+		return false
+	var price := relic_price(r)
+	if coins < price:
+		return false
+	coins -= price
+	relics.append(r)
+	_teach("first_relic")
+	return true
+
+
+func buy_consumable(id: String) -> bool:
+	var c := GameData.consumable_by_id(id)
+	if c.is_empty() or consumables.size() >= 2:
+		return false
+	if coins < int(c.get("price", 0)):
+		return false
+	coins -= int(c.get("price", 0))
+	consumables.append(id)
 	return true
 
 

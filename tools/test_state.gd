@@ -15,6 +15,7 @@ func _init() -> void:
 	_test_flow()
 	_test_endless()
 	_test_unlocks()
+	_test_shop_flow()
 	_test_consumables()
 	_test_shop()
 	_test_boss_rules()
@@ -327,6 +328,67 @@ func _test_unlocks() -> void:
 	var s := _fresh()
 	_check(s.max_hp == 52, "no meta (disabled): max_hp stays 52, got %d" % s.max_hp)
 	MetaSave.enabled = true
+
+
+func _test_shop_flow() -> void:
+	GameData.ensure_loaded()
+	# shop opens after boss fights 5 and 10 (index 4 / 9), not elsewhere
+	var g := GameState.new()
+	g.start_run(31)
+	g.tutorial_active = false
+	g.fight_index = 2
+	g._start_fight()
+	g.on_enemy_defeated()
+	_check(not g.shop_pending, "no shop after a normal fight")
+	g.fight_index = 4
+	g._start_fight()
+	g.on_enemy_defeated()
+	_check(g.shop_pending and bool(g.enemy.get("boss", false)), "shop pending after boss fight 5")
+	g.shop_pending = false
+	g.fight_index = 9
+	g._start_fight()
+	g.on_enemy_defeated()
+	_check(g.shop_pending, "shop pending after boss fight 10")
+	# interest paid once per visit, reroll price resets next visit
+	var g2 := GameState.new()
+	g2.start_run(32)
+	g2.tutorial_active = false
+	g2.coins = 53
+	var st: Dictionary = g2.open_shop()
+	_check(int(st.get("interest", -1)) == 5 and g2.coins == 58, "interest min(5, 53/10)=5 paid once on entry, coins 53->58")
+	g2.reroll_shop()
+	g2.reroll_shop()
+	_check(g2.shop_reroll_cost() == 4, "reroll cost 2->3->4 within a visit, got %d" % g2.shop_reroll_cost())
+	g2.open_shop()
+	_check(g2.shop_reroll_cost() == 2 and g2.shop_rerolls == 0, "reroll price resets on the next shop visit")
+	# buying from the shop stock
+	var g3 := GameState.new()
+	g3.start_run(33)
+	g3.tutorial_active = false
+	g3.coins = 60
+	var st3: Dictionary = g3.open_shop()
+	var relics: Array = st3.get("relics", [])
+	_check(relics.size() > 0, "shop stocks relics")
+	var relic0: Dictionary = relics[0]
+	var rid := String(relic0["id"])
+	var price := g3.relic_price(relic0)
+	var before := g3.coins
+	_check(g3.buy_relic(rid) and g3.coins == before - price and g3.has_relic(rid), "buy_relic charges rarity price %dc and grants the relic" % price)
+	_check(not g3.buy_relic(rid), "cannot buy the same relic twice")
+	var con_id := String(st3.get("consumable", ""))
+	if con_id != "":
+		var cb := g3.coins
+		_check(g3.buy_consumable(con_id) and g3.coins == cb - int(GameData.consumable_by_id(con_id).get("price", 0)) and g3.consumables.has(con_id), "buy_consumable charges its price and adds to inventory")
+	var uid := String((st3.get("upgrades", []) as Array)[0]["id"])
+	var ub := g3.coins
+	_check(g3.buy_upgrade(uid) and g3.coins == ub - int(GameData.upgrade_by_id(uid).get("price", 0)), "buy_upgrade charges its price")
+	_check(not g3.buy_upgrade(uid), "max 1 permanent upgrade per shop")
+	# reroll re-deals the stock
+	var st4: Dictionary = g3.open_shop()
+	g3.coins = 50
+	var old_relics: Array = st4.get("relics", []).duplicate()
+	g3.reroll_shop()
+	_check(g3.shop_stock.has("relics") and g3.shop_stock.has("consumable"), "reroll re-deals stock into shop_stock")
 
 
 func _test_consumables() -> void:

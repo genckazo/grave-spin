@@ -3,7 +3,7 @@
     "name": "Rattling Bones",
     "type": "skeleton",
     "floor": 1,
-    "hp": 30,
+    "hp": 36,
     "intents": [
       {
         "type": "attack",
@@ -24,7 +24,7 @@
     "name": "Ooze of the Deep",
     "type": "slime",
     "floor": 1,
-    "hp": 34,
+    "hp": 40,
     "intents": [
       {
         "type": "attack",
@@ -45,7 +45,7 @@
     "name": "The Whisperer",
     "type": "cultist",
     "floor": 1,
-    "hp": 40,
+    "hp": 46,
     "intents": [
       {
         "type": "attack",
@@ -66,7 +66,7 @@
     "name": "Grave Maw",
     "type": "slime",
     "floor": 1,
-    "hp": 38,
+    "hp": 44,
     "intents": [
       {
         "type": "attack",
@@ -88,7 +88,7 @@
     "type": "skeleton",
     "floor": 1,
     "boss": true,
-    "hp": 50,
+    "hp": 56,
     "intents": [
       {
         "type": "attack",
@@ -109,7 +109,7 @@
     "name": "Grave Robber",
     "type": "skeleton",
     "floor": 2,
-    "hp": 55,
+    "hp": 61,
     "intents": [
       {
         "type": "attack",
@@ -130,7 +130,7 @@
     "name": "Deep Ooze",
     "type": "slime",
     "floor": 2,
-    "hp": 58,
+    "hp": 64,
     "intents": [
       {
         "type": "attack",
@@ -151,7 +151,7 @@
     "name": "Zealot",
     "type": "cultist",
     "floor": 2,
-    "hp": 60,
+    "hp": 66,
     "intents": [
       {
         "type": "attack",
@@ -172,7 +172,7 @@
     "name": "Rattling Horde",
     "type": "skeleton",
     "floor": 2,
-    "hp": 62,
+    "hp": 68,
     "intents": [
       {
         "type": "attack",
@@ -194,7 +194,7 @@
     "type": "cultist",
     "floor": 2,
     "boss": true,
-    "hp": 70,
+    "hp": 76,
     "intents": [
       {
         "type": "attack",
@@ -215,7 +215,7 @@
     "name": "Ash Revenant",
     "type": "skeleton",
     "floor": 3,
-    "hp": 38,
+    "hp": 44,
     "intents": [
       {
         "type": "attack",
@@ -236,7 +236,7 @@
     "name": "Cinder Slime",
     "type": "slime",
     "floor": 3,
-    "hp": 42,
+    "hp": 48,
     "intents": [
       {
         "type": "attack",
@@ -257,7 +257,7 @@
     "name": "Hell Zealot",
     "type": "cultist",
     "floor": 3,
-    "hp": 46,
+    "hp": 52,
     "intents": [
       {
         "type": "attack",
@@ -278,7 +278,7 @@
     "name": "Grave Titan",
     "type": "skeleton",
     "floor": 3,
-    "hp": 50,
+    "hp": 56,
     "intents": [
       {
         "type": "attack",
@@ -300,7 +300,7 @@
     "type": "cultist",
     "floor": 3,
     "boss": true,
-    "hp": 54,
+    "hp": 60,
     "intents": [
       {
         "type": "attack",

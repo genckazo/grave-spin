@@ -127,7 +127,7 @@ func get_intent() -> Dictionary:
 	var value := int(raw["value"])
 	if kind == "attack" or kind == "heavy":
 		value += enemy_power
-	var penalty := maxi(0, int(config["values"]["skull"]) - RelicEngine.total(self, "skull_reduction"))
+	var penalty := maxi(0, int(config["values"]["skull"]) - RelicEngine.total(self, "skull_reduction") - RelicEngine.synergy_bonus(self, "skull"))
 	var title := ""
 	var sub := ""
 	match kind:
@@ -218,6 +218,8 @@ func resolve(grid: Array) -> Dictionary:
 	block_bonus += all_bonus
 	heal_bonus += all_bonus
 	coin_bonus += all_bonus
+	sword_bonus += RelicEngine.synergy_bonus(self, "sword")
+	coin_bonus += RelicEngine.synergy_bonus(self, "coin")
 
 	var report := {
 		"rows": [],
@@ -322,7 +324,7 @@ func resolve(grid: Array) -> Dictionary:
 
 	var intent := get_intent()
 	report["intent"] = intent
-	var penalty := maxi(0, int(values["skull"]) - RelicEngine.total(self, "skull_reduction")) * last_bet
+	var penalty := maxi(0, int(values["skull"]) - RelicEngine.total(self, "skull_reduction") - RelicEngine.synergy_bonus(self, "skull")) * last_bet
 	report["skull_penalty"] = penalty
 
 	var skull_count := total_skulls

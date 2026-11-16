@@ -1,6 +1,6 @@
 {
   "player_hp": 52,
-  "heal_between_fights": 11,
+  "heal_between_fights": 9,
   "symbols": [
     "sword",
     "shield",

@@ -43,11 +43,16 @@ func _grid(symbol: String) -> Array:
 
 
 func _test_data() -> void:
-	_check(GameData.relics.size() == 20, "20 relics load from data/relics.json")
+	_check(GameData.relics.size() == 30, "30 relics load from data/relics.json")
 	var counts := {"common": 0, "rare": 0, "cursed": 0}
 	for r in GameData.relics:
 		counts[String(r["rarity"])] = int(counts.get(String(r["rarity"]), 0)) + 1
-	_check(int(counts["common"]) == 10 and int(counts["rare"]) == 7 and int(counts["cursed"]) == 3, "relic rarity split 10 common / 7 rare / 3 cursed")
+	_check(int(counts["common"]) == 14 and int(counts["rare"]) == 10 and int(counts["cursed"]) == 3 and int(counts["epic"]) == 3, "relic rarity split 14 common / 10 rare / 3 cursed / 3 epic")
+	var tagged := 0
+	for r in GameData.relics:
+		if (r.get("tags", []) as Array).size() >= 1:
+			tagged += 1
+	_check(tagged == 30, "all 30 relics carry synergy tags, got %d" % tagged)
 	_check(GameData.fights.size() == 15, "15 fights load from data/fights.json")
 	var bosses := 0
 	var floors_ok := true
@@ -58,8 +63,8 @@ func _test_data() -> void:
 			floors_ok = false
 	_check(bosses == 3 and floors_ok, "exactly 3 bosses, all fights on floors 1-3")
 	_check(String(GameData.fights[4]["name"]) == "Bone Captain" and bool(GameData.fights[4]["boss"]), "Bone Captain is the floor-1 boss")
-	_check(String(GameData.fights[9]["name"]) == "The Grave Warden" and int(GameData.fights[9]["hp"]) == 70 and bool(GameData.fights[9]["boss"]), "Grave Warden is the floor-2 boss at hp 70")
-	_check(String(GameData.fights[14]["name"]) == "The Hollow King" and int(GameData.fights[14]["hp"]) == 54 and int(GameData.fights[14]["floor"]) == 3 and bool(GameData.fights[14]["boss"]), "The Hollow King is the floor-3 final boss at hp 54")
+	_check(String(GameData.fights[9]["name"]) == "The Grave Warden" and int(GameData.fights[9]["hp"]) == 76 and bool(GameData.fights[9]["boss"]), "Grave Warden is the floor-2 boss at hp 76")
+	_check(String(GameData.fights[14]["name"]) == "The Hollow King" and int(GameData.fights[14]["hp"]) == 60 and int(GameData.fights[14]["floor"]) == 3 and bool(GameData.fights[14]["boss"]), "The Hollow King is the floor-3 final boss at hp 60")
 	_check(GameData.enemies.size() == 3, "3 enemy archetypes load")
 	for relic in GameData.relics:
 		var icon_path := "res://assets/generated/" + String(relic["icon"])
@@ -103,6 +108,13 @@ func _test_relics() -> void:
 	whet.enemy_hp = 999
 	var whet_report: Dictionary = whet.resolve(_grid("sword"))
 	_check(int(whet_report["damage"]) == 36, "Whetstone adds 1 damage per sword (36)")
+
+	var syn := _fresh()
+	_add(syn, "whetstone")
+	_add(syn, "ashen_blade")
+	syn.enemy_hp = 999
+	var syn_report: Dictionary = syn.resolve(_grid("sword"))
+	_check(int(syn_report["damage"]) == 63, "two [sword] relics resonate: 3 rows x 3 swords x (3+1+2+1) = 63, got %d" % int(syn_report["damage"]))
 
 	var hand := _fresh()
 	_add(hand, "dead_mans_hand")
@@ -174,7 +186,7 @@ func _test_relics() -> void:
 	vamp.enemy_hp = 1
 	vamp.resolve([["sword", "sword", "sword"], ["shield", "shield", "shield"], ["shield", "shield", "shield"]])
 	vamp.on_enemy_defeated()
-	_check(int(vamp.hp) == 42, "Vampiric Edge: kill heals 1 on top of the 11 between-fight heal (30->42)")
+	_check(int(vamp.hp) == 40, "Vampiric Edge: kill heals 1 on top of the 9 between-fight heal (30->40)")
 
 	var pockets := _fresh()
 	_add(pockets, "deep_pockets")
@@ -254,7 +266,7 @@ func _test_flow() -> void:
 	next.resolve(_grid("sword"))
 	var next_outcome: String = next.on_enemy_defeated()
 	_check(next_outcome == "draft", "an early win returns draft")
-	_check(next.hp == 41, "an early win heals 11 between fights")
+	_check(next.hp == 39, "an early win heals 9 between fights")
 	_check(next.fights_won == 1, "fights_won increments")
 
 	var bones := _fresh()

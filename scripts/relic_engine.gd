@@ -32,3 +32,17 @@ static func has_effect(state, effect: String) -> bool:
 		if String(r.get("effect", "")) == effect:
 			return true
 	return false
+
+
+static func tag_count(state, tag: String) -> int:
+	var n := 0
+	for r in state.relics:
+		for t in r.get("tags", []):
+			if String(t) == tag:
+				n += 1
+	return n
+
+
+static func synergy_bonus(state, tag: String) -> int:
+	## Two or more relics sharing a tag resonate: +1 to that tag's stat.
+	return 1 if tag_count(state, tag) >= 2 else 0

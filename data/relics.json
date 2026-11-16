@@ -7,7 +7,10 @@
     "rarity": "common",
     "icon": "sword_icon.png",
     "desc": "Swords deal +1 damage.",
-    "flavor": "The blade remembers every stone."
+    "flavor": "The blade remembers every stone.",
+    "tags": [
+      "sword"
+    ]
   },
   {
     "id": "bulwark_sigil",
@@ -17,7 +20,10 @@
     "rarity": "common",
     "icon": "shield_icon.png",
     "desc": "Shields give +1 block each.",
-    "flavor": "A promise carved in iron."
+    "flavor": "A promise carved in iron.",
+    "tags": [
+      "reel"
+    ]
   },
   {
     "id": "leech_flask",
@@ -27,7 +33,10 @@
     "rarity": "common",
     "icon": "potion_icon.png",
     "desc": "Potions heal +1 extra.",
-    "flavor": "It bites back, but only a little."
+    "flavor": "It bites back, but only a little.",
+    "tags": [
+      "sword"
+    ]
   },
   {
     "id": "gilded_reel",
@@ -37,7 +46,11 @@
     "rarity": "common",
     "icon": "coin_icon.png",
     "desc": "Coins pay out +1 extra each.",
-    "flavor": "The house always takes its cut. Now you do too."
+    "flavor": "The house always takes its cut. Now you do too.",
+    "tags": [
+      "coin",
+      "reel"
+    ]
   },
   {
     "id": "bone_ward",
@@ -47,7 +60,10 @@
     "rarity": "common",
     "icon": "skull_icon.png",
     "desc": "Skulls add only +1 damage instead of +2.",
-    "flavor": "The dead nod to their own."
+    "flavor": "The dead nod to their own.",
+    "tags": [
+      "skull"
+    ]
   },
   {
     "id": "iron_frame",
@@ -57,7 +73,10 @@
     "rarity": "common",
     "icon": "dice_shield_icon.png",
     "desc": "Start every fight with 4 block.",
-    "flavor": "The machine was built to take a beating."
+    "flavor": "The machine was built to take a beating.",
+    "tags": [
+      "reel"
+    ]
   },
   {
     "id": "lucky_coin",
@@ -67,7 +86,11 @@
     "rarity": "common",
     "icon": "coin_icon.png",
     "desc": "Coins pay out +1 extra each.",
-    "flavor": "It lands on its edge every time."
+    "flavor": "It lands on its edge every time.",
+    "tags": [
+      "coin",
+      "gamble"
+    ]
   },
   {
     "id": "thick_hide",
@@ -77,7 +100,10 @@
     "rarity": "common",
     "icon": "shield_icon.png",
     "desc": "Start every fight with 3 block.",
-    "flavor": "Scar tissue, but make it fashion."
+    "flavor": "Scar tissue, but make it fashion.",
+    "tags": [
+      "reel"
+    ]
   },
   {
     "id": "potion_belt",
@@ -87,7 +113,10 @@
     "rarity": "common",
     "icon": "potion_icon.png",
     "desc": "Potions heal +1 extra.",
-    "flavor": "One for the road. Two, actually."
+    "flavor": "One for the road. Two, actually.",
+    "tags": [
+      "sword"
+    ]
   },
   {
     "id": "sharp_teeth",
@@ -97,7 +126,11 @@
     "rarity": "common",
     "icon": "bow_icon.png",
     "desc": "Swords deal +1 damage.",
-    "flavor": "You bite back now."
+    "flavor": "You bite back now.",
+    "tags": [
+      "sword",
+      "skull"
+    ]
   },
   {
     "id": "second_wind",
@@ -107,7 +140,10 @@
     "rarity": "rare",
     "icon": "suit_hearts_icon.png",
     "desc": "Once per run: survive lethal damage and return with 8 HP.",
-    "flavor": "Death checks the machine. It does not check twice."
+    "flavor": "Death checks the machine. It does not check twice.",
+    "tags": [
+      "gamble"
+    ]
   },
   {
     "id": "lucky_seventh",
@@ -118,7 +154,11 @@
     "rarity": "rare",
     "icon": "dice_sword_icon.png",
     "desc": "Every 7th pull rigs the reels to show at least 2 swords.",
-    "flavor": "Seven is not a lucky number here. It is a promise."
+    "flavor": "Seven is not a lucky number here. It is a promise.",
+    "tags": [
+      "gamble",
+      "sword"
+    ]
   },
   {
     "id": "bloodstone",
@@ -128,7 +168,11 @@
     "rarity": "rare",
     "icon": "gem_icon.png",
     "desc": "Gain 1 coin for each point of damage you take.",
-    "flavor": "Pain is just a deposit."
+    "flavor": "Pain is just a deposit.",
+    "tags": [
+      "coin",
+      "skull"
+    ]
   },
   {
     "id": "skull_crown",
@@ -138,7 +182,10 @@
     "rarity": "rare",
     "icon": "crown_a_icon.png",
     "desc": "Each skull also deals 1 damage to the enemy.",
-    "flavor": "Wear the thing that wants to eat you."
+    "flavor": "Wear the thing that wants to eat you.",
+    "tags": [
+      "skull"
+    ]
   },
   {
     "id": "gamblers_eye",
@@ -148,7 +195,11 @@
     "rarity": "rare",
     "icon": "skull_icon.png",
     "desc": "The first skull each fight adds no damage.",
-    "flavor": "You saw it coming. You always do."
+    "flavor": "You saw it coming. You always do.",
+    "tags": [
+      "gamble",
+      "skull"
+    ]
   },
   {
     "id": "deep_pockets",
@@ -158,7 +209,10 @@
     "rarity": "rare",
     "icon": "card_icon.png",
     "desc": "You can carry 1 more relic.",
-    "flavor": "The grave has room for more."
+    "flavor": "The grave has room for more.",
+    "tags": [
+      "coin"
+    ]
   },
   {
     "id": "vampiric_edge",
@@ -168,7 +222,10 @@
     "rarity": "rare",
     "icon": "suit_hearts_icon.png",
     "desc": "Heal 1 HP when you slay an enemy.",
-    "flavor": "Every grave feeds you a little."
+    "flavor": "Every grave feeds you a little.",
+    "tags": [
+      "sword"
+    ]
   },
   {
     "id": "grave_pact",
@@ -179,7 +236,11 @@
     "rarity": "cursed",
     "icon": "card_icon.png",
     "desc": "Swords deal +2 damage. Max HP -8 when taken.",
-    "flavor": "Sign here. The ink is already warm."
+    "flavor": "Sign here. The ink is already warm.",
+    "tags": [
+      "skull",
+      "gamble"
+    ]
   },
   {
     "id": "dead_mans_hand",
@@ -189,7 +250,11 @@
     "rarity": "cursed",
     "icon": "dice_skull_icon.png",
     "desc": "A payline of three swords deals +6 bonus damage.",
-    "flavor": "Three blades. No bluff."
+    "flavor": "Three blades. No bluff.",
+    "tags": [
+      "sword",
+      "gamble"
+    ]
   },
   {
     "id": "house_edge",
@@ -200,6 +265,145 @@
     "rarity": "cursed",
     "icon": "award_icon.png",
     "desc": "Every payout +1. Max HP -6 when taken.",
-    "flavor": "The house always wins. Tonight, so do you."
+    "flavor": "The house always wins. Tonight, so do you.",
+    "tags": [
+      "gamble",
+      "coin"
+    ]
+  },
+  {
+    "id": "tarnished_coin",
+    "name": "Tarnished Coin",
+    "effect": "coin_bonus",
+    "value": 2,
+    "rarity": "common",
+    "icon": "coin_icon.png",
+    "tags": [
+      "coin",
+      "gamble"
+    ],
+    "desc": "Coins pay +2.",
+    "flavor": "It was never heads or tails."
+  },
+  {
+    "id": "ashen_blade",
+    "name": "Ashen Blade",
+    "effect": "sword_bonus",
+    "value": 2,
+    "rarity": "common",
+    "icon": "dice_sword_icon.png",
+    "tags": [
+      "sword"
+    ],
+    "desc": "Swords deal +2 damage.",
+    "flavor": "Burns cleaner than it cuts."
+  },
+  {
+    "id": "grave_moss",
+    "name": "Grave Moss",
+    "effect": "heal_bonus",
+    "value": 2,
+    "rarity": "common",
+    "icon": "campfire_icon.png",
+    "tags": [
+      "sword"
+    ],
+    "desc": "Potions heal +2.",
+    "flavor": "It grows where the light gives up."
+  },
+  {
+    "id": "loaded_reel",
+    "name": "Loaded Reel",
+    "effect": "start_block",
+    "value": 6,
+    "rarity": "common",
+    "icon": "dice_shield_icon.png",
+    "tags": [
+      "reel"
+    ],
+    "desc": "Start each fight with 6 block.",
+    "flavor": "The top reel is heavier than it looks."
+  },
+  {
+    "id": "pact_ledger",
+    "name": "Pact Ledger",
+    "effect": "kill_heal",
+    "value": 2,
+    "rarity": "rare",
+    "icon": "card_icon.png",
+    "tags": [
+      "sword",
+      "gamble"
+    ],
+    "desc": "Kills heal +2.",
+    "flavor": "Every name in it is paid."
+  },
+  {
+    "id": "hollow_die",
+    "name": "Hollow Die",
+    "effect": "max_relics_bonus",
+    "value": 2,
+    "rarity": "rare",
+    "icon": "dice_skull_icon.png",
+    "tags": [
+      "gamble"
+    ],
+    "desc": "Carry 2 more relics.",
+    "flavor": "It rattles when you lie."
+  },
+  {
+    "id": "widows_veil",
+    "name": "Widow's Veil",
+    "effect": "skull_reduction",
+    "value": 2,
+    "rarity": "rare",
+    "icon": "award_icon.png",
+    "tags": [
+      "skull"
+    ],
+    "desc": "Skull penalty -2.",
+    "flavor": "She counts the skulls for you."
+  },
+  {
+    "id": "crown_of_thorns",
+    "name": "Crown of Thorns",
+    "effect": "skull_damage",
+    "value": 2,
+    "rarity": "epic",
+    "icon": "crown_a_icon.png",
+    "tags": [
+      "skull",
+      "sword"
+    ],
+    "desc": "Each skull also deals +2 damage.",
+    "flavor": "Kings bleed too."
+  },
+  {
+    "id": "jackpot_engine",
+    "name": "Jackpot Engine",
+    "effect": "triple_sword_bonus",
+    "value": 10,
+    "rarity": "epic",
+    "icon": "crown_a_icon.png",
+    "tags": [
+      "sword",
+      "reel"
+    ],
+    "desc": "Three swords on a row pay +10.",
+    "flavor": "The machine's favorite trick."
+  },
+  {
+    "id": "midas_touch",
+    "name": "Midas Touch",
+    "effect": "blood_coin",
+    "value": 2,
+    "rarity": "epic",
+    "icon": "coin_icon.png",
+    "tags": [
+      "coin",
+      "gamble"
+    ],
+    "desc": "Damage taken pays +2 coins.",
+    "flavor": "Everything you lose, it keeps."
   }
 ]

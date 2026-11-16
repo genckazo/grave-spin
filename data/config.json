@@ -26,5 +26,17 @@
   "max_relics": 4,
   "bone_coins_per_fight": 2,
   "coins_per_bone": 8,
-  "endless": true
+  "endless": true,
+  "difficulty": {
+    "normal": {
+      "enemy_hp": 1.0,
+      "enemy_atk": 1.0,
+      "reward": 1.0
+    },
+    "high_roller": {
+      "enemy_hp": 1.1,
+      "enemy_atk": 1.1,
+      "reward": 1.5
+    }
+  }
 }

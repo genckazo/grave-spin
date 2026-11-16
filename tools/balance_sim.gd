@@ -7,12 +7,19 @@ extends SceneTree
 
 const RUNS := 1000
 const SEEDS := [12345, 777, 2024]
-const BAND_LOW := 0.40
-const BAND_HIGH := 0.60
 
 
 func _init() -> void:
 	GameData.ensure_loaded()
+	var mode := "normal"
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--mode="):
+			mode = a.trim_prefix("--mode=")
+	var band_low := 0.40
+	var band_high := 0.60
+	if mode == "high_roller":
+		band_low = 0.25
+		band_high = 0.45
 	var all_ok := true
 	for seed_base in SEEDS:
 		var wins := 0
@@ -21,7 +28,7 @@ func _init() -> void:
 		var depth_total := 0
 		for i in range(RUNS):
 			var s := GameState.new()
-			s.start_run(seed_base + i)
+			s.start_run(seed_base + i, mode)
 			var guard := 0
 			while not s.run_over and guard < 600:
 				guard += 1
@@ -41,11 +48,11 @@ func _init() -> void:
 			spins_total += s.spin_count
 			fights_total += s.fights_won
 		var rate := float(wins) / float(RUNS)
-		var ok := rate >= BAND_LOW and rate <= BAND_HIGH
+		var ok := rate >= band_low and rate <= band_high
 		all_ok = all_ok and ok
-		print("seed %d: win rate %.1f%% (%d/%d)  avg spins %.1f  avg fights %.2f/%d  avg endless depth %.2f  band 40-60%% -> %s" % [
+		print("seed %d: win rate %.1f%% (%d/%d)  avg spins %.1f  avg fights %.2f/%d  avg endless depth %.2f  band %.0f-%.0f%% (%s) -> %s" % [
 			seed_base, rate * 100.0, wins, RUNS, float(spins_total) / RUNS, float(fights_total) / RUNS,
-			GameData.fights.size(), float(depth_total) / RUNS,
+			GameData.fights.size(), float(depth_total) / RUNS, band_low * 100.0, band_high * 100.0, mode,
 			"IN" if ok else "OUT"])
 	print("SIM %s" % ("PASS" if all_ok else "FAIL"))
 	quit(0 if all_ok else 1)

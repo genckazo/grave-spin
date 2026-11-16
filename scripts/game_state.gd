@@ -36,14 +36,23 @@ var second_wind_used: bool = false
 var run_over: bool = false
 var victory: bool = false
 var endless_depth: int = 0
+var difficulty := "normal"
+var diff_hp := 1.0
+var diff_atk := 1.0
+var diff_reward := 1.0
 
 var rng := RandomNumberGenerator.new()
 var logs: Array = []
 var stats: Dictionary = {}
 
 
-func start_run(seed_value: int = 0) -> void:
+func start_run(seed_value: int = 0, mode := "normal") -> void:
 	GameData.ensure_loaded()
+	difficulty = mode if GameData.config.get("difficulty", {}).has(mode) else "normal"
+	var diff: Dictionary = GameData.config["difficulty"][difficulty]
+	diff_hp = float(diff.get("enemy_hp", 1.0))
+	diff_atk = float(diff.get("enemy_atk", 1.0))
+	diff_reward = float(diff.get("reward", 1.0))
 	config = GameData.config
 	fights = GameData.fights
 	enemies = GameData.enemies
@@ -102,7 +111,7 @@ func _start_fight() -> void:
 		"floor": int(fight.get("floor", 1)),
 		"boss": bool(fight.get("boss", false)),
 	}
-	enemy_hp = int(fight["hp"])
+	enemy_hp = int(round(int(fight["hp"]) * diff_hp))
 	enemy_block = 0
 	enemy_power = 0
 	intent_index = 0
@@ -339,7 +348,7 @@ func resolve(grid: Array) -> Dictionary:
 
 	match String(intent["type"]):
 		"attack", "heavy":
-			var incoming := int(intent["value"]) + skull_count * penalty
+			var incoming := int(round(int(intent["value"]) * diff_atk)) + skull_count * penalty
 			var blocked := mini(block, incoming)
 			var taken := incoming - blocked
 			hp -= taken
@@ -464,7 +473,7 @@ func has_relic(id: String) -> bool:
 func bone_coins_earned() -> int:
 	var per_fight := int(config["bone_coins_per_fight"])
 	var per_coin := maxi(1, int(config["coins_per_bone"]))
-	return fights_won * per_fight + int(floor(float(coins) / float(per_coin)))
+	return int(round((fights_won * per_fight + int(floor(float(coins) / float(per_coin)))) * diff_reward))
 
 
 func summary() -> Dictionary:

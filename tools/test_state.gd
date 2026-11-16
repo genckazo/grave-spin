@@ -15,6 +15,7 @@ func _init() -> void:
 	_test_flow()
 	_test_endless()
 	_test_unlocks()
+	_test_difficulty()
 	_test_schema_versions()
 	_test_meta_save()
 	var verdict := "PASS" if failures == 0 else "FAIL"
@@ -319,6 +320,29 @@ func _test_unlocks() -> void:
 	var s := _fresh()
 	_check(s.max_hp == 52, "no meta (disabled): max_hp stays 52, got %d" % s.max_hp)
 	MetaSave.enabled = true
+
+
+func _test_difficulty() -> void:
+	GameData.ensure_loaded()
+	var s := _fresh()
+	_check(s.difficulty == "normal" and s.diff_hp == 1.0 and s.diff_atk == 1.0 and s.diff_reward == 1.0, "default mode normal, multipliers 1.0")
+	var h := GameState.new()
+	h.start_run(1, "high_roller")
+	_check(h.difficulty == "high_roller", "high_roller mode accepted")
+	_check(h.diff_hp == 1.25 and h.diff_atk == 1.25 and h.diff_reward == 1.5, "high_roller multipliers 1.25/1.25/1.5, got %s/%s/%s" % [str(h.diff_hp), str(h.diff_atk), str(h.diff_reward)])
+	_check(h.enemy_hp == int(round(36 * 1.10)), "first fight hp 36 scaled to %d, got %d" % [int(round(36 * 1.10)), h.enemy_hp])
+	var bad := GameState.new()
+	bad.start_run(1, "nightmare")
+	_check(bad.difficulty == "normal", "unknown mode falls back to normal")
+	var n := GameState.new()
+	n.start_run(1, "normal")
+	_check(n.enemy_hp == 36, "normal mode first fight hp 36, got %d" % n.enemy_hp)
+	n.fights_won = 3
+	n.coins = 16
+	_check(n.bone_coins_earned() == 3 * 2 + 2, "normal bone coins = 8, got %d" % n.bone_coins_earned())
+	h.fights_won = 3
+	h.coins = 16
+	_check(h.bone_coins_earned() == int(round((3 * 2 + 2) * 1.5)), "high_roller bone coins = 12, got %d" % h.bone_coins_earned())
 
 
 func _test_schema_versions() -> void:

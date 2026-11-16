@@ -593,7 +593,8 @@ func _report_run() -> void:
 	var meta := MetaSave.load_meta()
 	var cursed := 0
 	for r in relics:
-		if String(GameData.relic_by_id(String(r)).get("rarity", "")) == "cursed":
+		var rid := String(r.get("id", "")) if r is Dictionary else String(r)
+		if String(GameData.relic_by_id(rid).get("rarity", "")) == "cursed":
 			cursed += 1
 	MetaSave.report_run(meta, {
 		"victory": victory,

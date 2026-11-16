@@ -376,6 +376,7 @@ func resolve(grid: Array) -> Dictionary:
 					hp = 0
 					report["player_dead"] = true
 					run_over = true
+					_report_run()
 					_log("The machine takes you.", "red")
 		"defend":
 			enemy_block += int(intent["value"])
@@ -399,6 +400,7 @@ func on_enemy_defeated() -> String:
 			_log("The Hollow King falls. Below, something else wakes.", "gold")
 			return "endless"
 		run_over = true
+		_report_run()
 		return "victory"
 	hp = min(max_hp, hp + int(config["heal_between_fights"]))
 	_log("You bind your wounds (+%d HP)." % int(config["heal_between_fights"]), "good")
@@ -526,3 +528,29 @@ func _log(text: String, kind: String = "bone") -> void:
 	logs.append({"text": text, "kind": kind})
 	if logs.size() > MAX_LOG:
 		logs.pop_front()
+
+func _report_run() -> void:
+	if not MetaSave.enabled:
+		return
+	var meta := MetaSave.load_meta()
+	var cursed := 0
+	for r in relics:
+		if String(GameData.relic_by_id(String(r)).get("rarity", "")) == "cursed":
+			cursed += 1
+	MetaSave.report_run(meta, {
+		"victory": victory,
+		"difficulty": difficulty,
+		"fights_won": fights_won,
+		"endless_depth": endless_depth,
+		"spins": int(stats.get("spins", 0)),
+		"coins": coins,
+		"relics": relics.size(),
+		"floor": floor,
+		"jackpots": int(stats.get("jackpots", 0)),
+		"perfect_fights": int(stats.get("perfect_fights", 0)),
+		"bet5_wins": int(stats.get("bet5_wins", 0)),
+		"cursed_relics": cursed,
+		"no_heal": victory and int(stats.get("healed", 0)) == 0,
+		"daily": false,
+	})
+	MetaSave.save_meta(meta)

@@ -1,0 +1,202 @@
+[
+  {
+    "schema_version": 1,
+    "id": "first_blood",
+    "name": "First Blood",
+    "desc": "Win a fight.",
+    "stat": "best_fights",
+    "threshold": 1
+  },
+  {
+    "schema_version": 1,
+    "id": "first_victory",
+    "name": "Grave Robber",
+    "desc": "Win a run.",
+    "stat": "victories",
+    "threshold": 1
+  },
+  {
+    "schema_version": 1,
+    "id": "victories_10",
+    "name": "Serial Winner",
+    "desc": "Win 10 runs.",
+    "stat": "victories",
+    "threshold": 10
+  },
+  {
+    "schema_version": 1,
+    "id": "victories_50",
+    "name": "Undying Legend",
+    "desc": "Win 50 runs.",
+    "stat": "victories",
+    "threshold": 50
+  },
+  {
+    "schema_version": 1,
+    "id": "runs_10",
+    "name": "Regular at the Table",
+    "desc": "Play 10 runs.",
+    "stat": "runs",
+    "threshold": 10
+  },
+  {
+    "schema_version": 1,
+    "id": "runs_100",
+    "name": "High Roller",
+    "desc": "Play 100 runs.",
+    "stat": "runs",
+    "threshold": 100
+  },
+  {
+    "schema_version": 1,
+    "id": "endless_1",
+    "name": "Into the Dark",
+    "desc": "Reach endless depth 1.",
+    "stat": "best_endless",
+    "threshold": 1
+  },
+  {
+    "schema_version": 1,
+    "id": "endless_5",
+    "name": "Deep Diver",
+    "desc": "Reach endless depth 5.",
+    "stat": "best_endless",
+    "threshold": 5
+  },
+  {
+    "schema_version": 1,
+    "id": "endless_10",
+    "name": "Bottomless",
+    "desc": "Reach endless depth 10.",
+    "stat": "best_endless",
+    "threshold": 10
+  },
+  {
+    "schema_version": 1,
+    "id": "spins_100",
+    "name": "Pull Addict",
+    "desc": "Spin 100 times in one run.",
+    "stat": "best_spins",
+    "threshold": 100
+  },
+  {
+    "schema_version": 1,
+    "id": "spins_300",
+    "name": "Lever Arm",
+    "desc": "Spin 300 times in one run.",
+    "stat": "best_spins",
+    "threshold": 300
+  },
+  {
+    "schema_version": 1,
+    "id": "coins_500",
+    "name": "Coin Hoarder",
+    "desc": "Earn 500 coins in one run.",
+    "stat": "best_coins",
+    "threshold": 500
+  },
+  {
+    "schema_version": 1,
+    "id": "relics_4",
+    "name": "Fully Loaded",
+    "desc": "Hold 4 relics at once.",
+    "stat": "best_relics",
+    "threshold": 4
+  },
+  {
+    "schema_version": 1,
+    "id": "high_roller_win",
+    "name": "House Edge",
+    "desc": "Win on High Roller.",
+    "stat": "hr_victories",
+    "threshold": 1
+  },
+  {
+    "schema_version": 1,
+    "id": "jackpot_10",
+    "name": "Jackpot City",
+    "desc": "Hit 10 jackpots across all runs.",
+    "stat": "jackpots",
+    "threshold": 10
+  },
+  {
+    "schema_version": 1,
+    "id": "jackpot_50",
+    "name": "Fortune Favors",
+    "desc": "Hit 50 jackpots across all runs.",
+    "stat": "jackpots",
+    "threshold": 50
+  },
+  {
+    "schema_version": 1,
+    "id": "cursed_relics_3",
+    "name": "Embrace the Curse",
+    "desc": "Win with 3 cursed relics.",
+    "stat": "cursed_win",
+    "threshold": 3
+  },
+  {
+    "schema_version": 1,
+    "id": "floor3_clear",
+    "name": "Hellwalker",
+    "desc": "Reach floor 3.",
+    "stat": "best_floor",
+    "threshold": 3
+  },
+  {
+    "schema_version": 1,
+    "id": "no_heal_win",
+    "name": "Iron Stomach",
+    "desc": "Win a run without healing between fights.",
+    "stat": "no_heal_wins",
+    "threshold": 1
+  },
+  {
+    "schema_version": 1,
+    "id": "bet5_win",
+    "name": "All In",
+    "desc": "Win a fight at bet 5.",
+    "stat": "bet5_wins",
+    "threshold": 1
+  },
+  {
+    "schema_version": 1,
+    "id": "perfect_fight",
+    "name": "Flawless",
+    "desc": "Win a fight without taking damage.",
+    "stat": "perfect_fights",
+    "threshold": 1
+  },
+  {
+    "schema_version": 1,
+    "id": "perfect_10",
+    "name": "Untouchable",
+    "desc": "Win 10 flawless fights.",
+    "stat": "perfect_fights",
+    "threshold": 10
+  },
+  {
+    "schema_version": 1,
+    "id": "unlock_1",
+    "name": "First Purchase",
+    "desc": "Buy a Bone Coin unlock.",
+    "stat": "unlocks",
+    "threshold": 1
+  },
+  {
+    "schema_version": 1,
+    "id": "unlock_all",
+    "name": "Fully Fleshed",
+    "desc": "Buy every Bone Coin unlock.",
+    "stat": "unlocks",
+    "threshold": 6
+  },
+  {
+    "schema_version": 1,
+    "id": "daily_7",
+    "name": "Creature of Habit",
+    "desc": "Play 7 different daily seeds.",
+    "stat": "dailies",
+    "threshold": 7
+  }
+]

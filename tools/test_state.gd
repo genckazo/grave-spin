@@ -15,6 +15,7 @@ func _init() -> void:
 	_test_flow()
 	_test_endless()
 	_test_unlocks()
+	_test_achievements()
 	_test_difficulty()
 	_test_schema_versions()
 	_test_meta_save()
@@ -320,6 +321,23 @@ func _test_unlocks() -> void:
 	var s := _fresh()
 	_check(s.max_hp == 52, "no meta (disabled): max_hp stays 52, got %d" % s.max_hp)
 	MetaSave.enabled = true
+
+
+func _test_achievements() -> void:
+	GameData.ensure_loaded()
+	_check(GameData.achievements.size() == 25, "25 achievements load, got %d" % GameData.achievements.size())
+	var meta := MetaSave.load_meta()
+	meta["achievements"] = []
+	meta["stats"] = {}
+	_check(MetaSave.unlock_achievement(meta, "test_grant"), "first unlock grants")
+	_check(not MetaSave.unlock_achievement(meta, "test_grant"), "achievement unlock is idempotent")
+	var granted: Array = MetaSave.report_run(meta, {"victory": true, "difficulty": "normal", "fights_won": 15, "endless_depth": 2, "spins": 120, "coins": 600, "relics": 4, "floor": 3, "jackpots": 12, "perfect_fights": 3, "bet5_wins": 1, "cursed_relics": 0, "no_heal": false, "daily": false})
+	_check(granted.has("first_victory"), "victory run grants first_victory")
+	_check(granted.has("first_blood") and granted.has("endless_1") and granted.has("spins_100") and granted.has("coins_500"), "stat-threshold achievements granted")
+	_check(int(meta["stats"]["victories"]) == 1 and int(meta["stats"]["runs"]) == 1, "stats accumulate runs/victories")
+	var granted2: Array = MetaSave.report_run(meta, {"victory": true, "difficulty": "high_roller", "fights_won": 15, "endless_depth": 0, "spins": 60, "coins": 100, "relics": 2, "floor": 3, "jackpots": 0, "perfect_fights": 0, "bet5_wins": 0, "cursed_relics": 3, "no_heal": true, "daily": false})
+	_check(granted2.has("high_roller_win") and granted2.has("cursed_relics_3") and granted2.has("no_heal_win"), "mode/cursed/no-heal achievements granted")
+	_check(not granted2.has("first_victory"), "already-owned achievement not re-granted")
 
 
 func _test_difficulty() -> void:

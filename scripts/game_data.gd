@@ -8,6 +8,7 @@ static var relics: Array = []
 static var enemies: Dictionary = {}
 static var fights: Array = []
 static var unlocks: Array = []
+static var achievements: Array = []
 const SCHEMA_VERSION := 1
 
 static func ensure_loaded() -> void:
@@ -21,6 +22,8 @@ static func ensure_loaded() -> void:
 	fights = fight_data if fight_data is Array else []
 	var unlock_data = _read_json("res://data/unlocks.json")
 	unlocks = unlock_data if unlock_data is Array else []
+	var ach_data = _read_json("res://data/achievements.json")
+	achievements = ach_data if ach_data is Array else []
 
 static func _check_schema(path: String, parsed: Variant) -> void:
 	var v = null

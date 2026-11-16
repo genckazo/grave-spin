@@ -1,16 +1,69 @@
-# Grave Spin — SYS1–SYS5 Final Report
+# Grave Spin — SYS1–SYS5 + JOB 1–3 (fix / lives / polish) Final Report
 
-All five systems built in order, one commit per system (plus one retune commit).
-Gates at final HEAD: headless tests PASS failures=0; balance sim 1,000 runs x 5
-seeds (12345 / 777 / 2024 / 99999 / 31337), every seed reported exactly:
+## JOB 1 — Shop wired into the game — commit eee6e3c — WORKS
+- `open_shop()` had zero callers and no shop screen existed. Now the grave
+  market opens after boss fights 5 and 10 (data-driven:
+  `config.shop_after_boss_fights = [5, 10]`). Flow: boss win -> relic draft
+  -> shop -> LEAVE starts the next fight.
+- New `scripts/screens/shop_screen.gd` presents the existing SYS4 economy
+  unchanged: coins, interest earned on entry, reroll price, the 3 permanent
+  upgrades (max 1 per visit), the consumable slot with prices; buttons
+  disabled when unaffordable; first-visit teach line shown once.
+- Engine additions: `shop_pending`, `leave_shop()`, `shop_relic_stock()`,
+  `buy_shop_consumable()`; `main.gd` routes the flow and autoplay handles
+  the shop screen.
+- Headless test `_test_shop_flow`: shop pending exactly after boss fights
+  5/10 (not on regular fights, not on the final boss), interest paid once
+  per visit (reroll never re-pays), reroll price resets next visit,
+  consumable buy/sold-out, leave clears pending.
 
-- Normal, band 40–60%: 45.9% (459/1000), 40.8% (408/1000), 46.3% (463/1000),
-  40.7% (407/1000), 41.4% (414/1000) — ALL IN, SIM PASS.
-- High Roller, band 15–35%: 22.0% (220/1000), 23.9% (239/1000), 23.0% (230/1000),
-  21.7% (217/1000), 21.2% (212/1000) — ALL IN, SIM PASS.
+## JOB 2 — Lives: 3 per run — commit 6b6f19b — WORKS
+- Run starts with 3 lives (`config.lives = 3`), heart icons in the fight HUD
+  bottom bar, always visible.
+- On death: lose 1 life, retry the SAME fight — player HP restored to the
+  value held when the fight was entered (`fight_entry_hp`), enemy restored
+  to its starting HP, boss rule stays exactly as announced. At 0 lives the
+  existing `finish_run(false)` flow runs; the end screen shows LIVES SPENT.
+- Meta progress (bone coins, unlocks) and the pity system unchanged; Second
+  Wind still takes precedence over losing a life.
+- `balance_sim.gd` models lives (retry with entry HP). Before/after bands:
+  without lives normal was 45.9/40.8/46.3/40.7/41.4%; with lives and no
+  retune it rose to 61.2/58.1/62.6/59.9/59.7% (seeds 12345/2024 OUT above
+  60, stated plainly). Retune `heal_between_fights` 16->10: final normal
+  49.2/42.6/47.1/43.1/45.4% — ALL IN 40-60%, SIM PASS. High Roller final
+  numbers in the Gates section below.
+- Headless test `_test_lives`: life decrement on death, retry restores entry
+  HP + fresh enemy + keeps boss rule, run ends at 0 lives, summary carries
+  lives/lives_spent, Second Wind precedence.
 
-No seed out of band at the final gate. One intermediate out-of-band result was
-reported plainly and fixed by retune (see SYS3).
+## JOB 3 — Visual polish — commit 51ebf7d — WORKS (look & feel only)
+- Graveyard-at-dusk parallax background behind all screens: three original
+  layers drawn by `tools/make_polish_art.py` (`bg_sky` moon/stars/hills,
+  `bg_mid` gravestones/dead tree/fog, `bg_near` foreground fence), drifting
+  at different speeds; drift disabled when `reduced_motion` is set.
+- Slot-machine cabinet frame around the reels drawn in-engine
+  (`CabinetFrame._draw`: wood body, brass trim, marquee bulbs, reel window,
+  rivets) — original art, no new runtime dependencies.
+- Juice: red edge vignette flash on player hits (plus existing screen shake
+  and flash), settle bounce when each reel stops, coin bursts on wins, enemy
+  idle bob. One palette and three fonts shared across menu/fight/shop/draft/
+  end screens via the UI helper.
+- Also carries the JOB 2 HUD wiring (lives icons, LIFE LOST -> retry flow).
+
+## Gates (final, at JOB 3 HEAD)
+- Tests: `tools/test_state.gd` TESTS PASS failures=0 (all pre-existing plus
+  `_test_shop_flow` and `_test_lives`).
+- Sim, 1,000 runs x 5 seeds (12345 / 777 / 2024 / 99999 / 31337), lives
+  modelled, every seed reported exactly:
+  - Normal, band 40–60%: 49.2% (492/1000), 42.6% (426/1000), 47.1% (471/1000),
+    43.1% (431/1000), 45.4% (454/1000) — ALL IN, SIM PASS.
+  - High Roller, band 15–35%: 23.1% (231/1000), 21.1% (211/1000), 19.4% (194/1000),
+    22.0% (220/1000), 20.1% (201/1000) — ALL IN, SIM PASS.
+- Autoplay (`--autoplay --fast`) completes a full run through the real game
+  loop including the shop screen, reaches the end screen, 0 script errors.
+- Exports (fresh, local-only in gitignored `build/`): macOS
+  `build/macos/GraveSpin.app`, Windows `build/windows/GraveSpin.exe`
+  115,688,048 bytes, PE32+ x86-64.
 
 ## Per system
 
@@ -79,13 +132,16 @@ reported plainly and fixed by retune (see SYS3).
 
 ## Commits
 0490fab (SYS1), b381aba (SYS2), 38ce5ce (SYS3), 6e1db2c (SYS3 retune),
-e9548a6 (SYS4), 48ffeac (SYS5), plus final gate commit (sim extended to 5
-seeds + this REPORT.md).
+e9548a6 (SYS4), 48ffeac (SYS5), bdd4033 + 0fd7ba6 (SYS gates + crash fix),
+eee6e3c (JOB 1 shop wiring), 6b6f19b (JOB 2 lives), 51ebf7d (JOB 3 polish),
+plus this final gate commit (REPORT.md + fresh exports).
 
 ## Not tested / stub-level
 - Real Windows GPU run, gamepad, human playtest (headless macOS only).
-- UI screens were not rewired to animate the SYS2 sequence steps or the SYS5
-  click-target consumable flow; engine, data, and headless tests are complete,
-  presentation is stub-level.
+- The SYS2 per-step pop/scale animation and the SYS5 click-target consumable
+  flow remain stub-level in the UI screens; engine, data, and headless tests
+  are complete. The new shop screen is fully wired (buy/reroll/leave).
+- Visual polish was verified by code path + autoplay, not by eye: headless
+  rendering produces no frames, so no screenshot check was possible here.
 - Known reported conflict unchanged: relic rarity split backlog 10/6/2/2 vs
   shipped 14/10/3/3.

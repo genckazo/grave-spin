@@ -1,0 +1,27 @@
+key,text
+game_title,Giro Funesto
+menu_start,Empezar partida
+menu_continue,Continuar
+menu_settings,Ajustes
+menu_quit,Salir
+hud_hp,PV
+hud_coins,Monedas
+hud_floor,Piso
+hud_bet,Apuesta
+action_spin,Girar
+action_draft,Elegir
+shop_title,Tienda
+event_title,Evento
+fight_victory,Victoria
+run_victory,¡Partida ganada!
+run_defeat,Partida perdida
+run_summary,Resumen
+settings_language,Idioma
+settings_colorblind,Símbolos para daltónicos
+settings_reduced_motion,Movimiento reducido
+settings_back,Volver
+achievements_title,Logros
+unlocks_title,Huesos de moneda
+difficulty_normal,Normal
+difficulty_high_roller,Gran apostador
+mode_select,Elegir modo

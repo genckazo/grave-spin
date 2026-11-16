@@ -1,0 +1,27 @@
+key,text
+game_title,Rouleau Funèbre
+menu_start,Nouvelle partie
+menu_continue,Continuer
+menu_settings,Réglages
+menu_quit,Quitter
+hud_hp,PV
+hud_coins,Pièces
+hud_floor,Étage
+hud_bet,Mise
+action_spin,Tourner
+action_draft,Choisir
+shop_title,Boutique
+event_title,Événement
+fight_victory,Victoire
+run_victory,Partie gagnée !
+run_defeat,Partie perdue
+run_summary,Résumé
+settings_language,Langue
+settings_colorblind,Symboles daltoniens
+settings_reduced_motion,Mouvement réduit
+settings_back,Retour
+achievements_title,Succès
+unlocks_title,Pièces d'os
+difficulty_normal,Normal
+difficulty_high_roller,Gros joueur
+mode_select,Choisir le mode

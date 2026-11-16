@@ -1,0 +1,27 @@
+key,text
+game_title,Grave Spin
+menu_start,Start Run
+menu_continue,Continue
+menu_settings,Settings
+menu_quit,Quit
+hud_hp,HP
+hud_coins,Coins
+hud_floor,Floor
+hud_bet,Bet
+action_spin,Spin
+action_draft,Draft
+shop_title,Shop
+event_title,Event
+fight_victory,Victory
+run_victory,Run Won!
+run_defeat,Run Lost
+run_summary,Run Summary
+settings_language,Language
+settings_colorblind,Colorblind symbols
+settings_reduced_motion,Reduced motion
+settings_back,Back
+achievements_title,Achievements
+unlocks_title,Bone Coins
+difficulty_normal,Normal
+difficulty_high_roller,High Roller
+mode_select,Select Mode

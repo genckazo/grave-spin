@@ -15,6 +15,7 @@ func _init() -> void:
 	_test_flow()
 	_test_endless()
 	_test_unlocks()
+	_test_loc_and_settings()
 	_test_achievements()
 	_test_difficulty()
 	_test_schema_versions()
@@ -321,6 +322,33 @@ func _test_unlocks() -> void:
 	var s := _fresh()
 	_check(s.max_hp == 52, "no meta (disabled): max_hp stays 52, got %d" % s.max_hp)
 	MetaSave.enabled = true
+
+
+func _test_loc_and_settings() -> void:
+	var langs := Loc.languages()
+	_check(langs.size() == 7 and langs.has("en") and langs.has("ja") and langs.has("zh"), "7 languages (EFIGS+JA/ZH), got %s" % str(langs))
+	var ref := {}
+	for k in Loc._read_csv("res://data/loc/en.csv").keys():
+		ref[k] = true
+	for lang in langs:
+		var keys := Loc._read_csv("res://data/loc/%s.csv" % lang).keys()
+		_check(keys.size() == ref.size(), "loc %s has %d keys == en %d" % [lang, keys.size(), ref.size()])
+		for k in ref.keys():
+			_check(keys.has(k), "loc %s missing key %s" % [lang, k])
+	Loc.load("ja")
+	_check(Loc.language == "ja" and Loc.t("menu_start") != "menu_start", "ja loads and translates")
+	Loc.load("xx")
+	_check(Loc.language == "en", "unknown language falls back to en")
+	Loc.load("en")
+	var meta := MetaSave.load_meta()
+	var settings: Dictionary = meta.get("settings", {})
+	settings["language"] = "de"
+	settings["colorblind_symbols"] = true
+	settings["reduced_motion"] = true
+	meta["settings"] = settings
+	MetaSave.save_meta(meta)
+	var loaded := MetaSave.load_meta()
+	_check(str(loaded["settings"]["language"]) == "de" and bool(loaded["settings"]["colorblind_symbols"]) and bool(loaded["settings"]["reduced_motion"]), "settings persist across save/load")
 
 
 func _test_achievements() -> void:

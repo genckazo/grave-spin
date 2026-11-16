@@ -1,0 +1,27 @@
+key,text
+game_title,Spin Funereo
+menu_start,Nuova partita
+menu_continue,Continua
+menu_settings,Impostazioni
+menu_quit,Esci
+hud_hp,PF
+hud_coins,Monete
+hud_floor,Piano
+hud_bet,Puntata
+action_spin,Gira
+action_draft,Scegli
+shop_title,Negozio
+event_title,Evento
+fight_victory,Vittoria
+run_victory,Partita vinta!
+run_defeat,Partita persa
+run_summary,Riepilogo
+settings_language,Lingua
+settings_colorblind,Simboli per daltonici
+settings_reduced_motion,Movimento ridotto
+settings_back,Indietro
+achievements_title,Obiettivi
+unlocks_title,Ossa di moneta
+difficulty_normal,Normale
+difficulty_high_roller,Alto puntatore
+mode_select,Scegli modalità

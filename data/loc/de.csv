@@ -1,0 +1,27 @@
+key,text
+game_title,Grab-Spin
+menu_start,Run starten
+menu_continue,Weiter
+menu_settings,Einstellungen
+menu_quit,Beenden
+hud_hp,LP
+hud_coins,Münzen
+hud_floor,Etage
+hud_bet,Einsatz
+action_spin,Drehen
+action_draft,Wählen
+shop_title,Laden
+event_title,Ereignis
+fight_victory,Sieg
+run_victory,Run gewonnen!
+run_defeat,Run verloren
+run_summary,Zusammenfassung
+settings_language,Sprache
+settings_colorblind,Farbenblind-Symbole
+settings_reduced_motion,Reduzierte Bewegung
+settings_back,Zurück
+achievements_title,Erfolge
+unlocks_title,Knochenmünzen
+difficulty_normal,Normal
+difficulty_high_roller,High Roller
+mode_select,Modus wählen

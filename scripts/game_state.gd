@@ -38,6 +38,7 @@ var victory: bool = false
 var endless_depth: int = 0
 var difficulty := "normal"
 var tutorial_active := false
+var boss_rule := ""
 var teach_seen: Dictionary = {}
 var diff_hp := 1.0
 var diff_atk := 1.0
@@ -122,6 +123,11 @@ func _start_fight() -> void:
 		"boss": bool(fight.get("boss", false)),
 	}
 	enemy_hp = int(round(int(fight["hp"]) * diff_hp))
+	boss_rule = ""
+	if bool(fight.get("boss", false)) and not GameData.boss_rules.is_empty():
+		var rule: Dictionary = GameData.boss_rules[rng.randi_range(0, GameData.boss_rules.size() - 1)]
+		boss_rule = String(rule["id"])
+		_log("BOSS RULE — %s: %s" % [String(rule["name"]), String(rule["desc"])], "cursed")
 	enemy_block = 0
 	enemy_power = 0
 	intent_index = 0
@@ -179,6 +185,8 @@ func roll() -> Dictionary:
 	last_bet = clamp(bet, 1, maxi(1, coins))
 	if not free:
 		coins = maxi(0, coins - last_bet)
+		if boss_rule == "greed_tax":
+			coins = maxi(0, coins - 2)
 	var weights: Dictionary = (config["weights"] as Dictionary).duplicate()
 	weights["skull"] = int(weights.get("skull", 0)) + int(enemy.get("skull_extra", 0))
 	var grid: Array = []
@@ -198,6 +206,10 @@ func roll() -> Dictionary:
 				row.append(_pick_symbol(weights))
 			grid.append(row)
 
+	if boss_rule == "jammed_reel":
+		for r in range(grid.size()):
+			if grid[r].size() > 2:
+				grid[r][2] = "skull"
 	var rigged := false
 	var seventh := RelicEngine.total(self, "lucky_seventh")
 	if seventh > 0 and spin_count % seventh == 0:
@@ -317,10 +329,13 @@ func resolve(grid: Array) -> Dictionary:
 		stats["healed"] += healed
 
 		var coin_gain := co * (int(values["coin"]) + coin_bonus) * last_bet
+		if boss_rule == "greed_tax":
+			coin_gain *= 2
 		coins += coin_gain
 		report["coins"] += coin_gain
 
-		var block_gain := sh * (int(values["shield"]) + block_bonus)
+		var shield_value := 0 if boss_rule == "thin_shield" else int(values["shield"])
+		var block_gain := sh * (shield_value + (0 if boss_rule == "thin_shield" else block_bonus))
 		block += block_gain
 		report["block"] += block_gain
 

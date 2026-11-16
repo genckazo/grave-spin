@@ -11,6 +11,7 @@ static var unlocks: Array = []
 static var achievements: Array = []
 static var tutorial: Dictionary = {}
 static var tooltips: Dictionary = {}
+static var boss_rules: Array = []
 const SCHEMA_VERSION := 1
 
 static func ensure_loaded() -> void:
@@ -29,6 +30,8 @@ static func ensure_loaded() -> void:
 	tutorial = _read_json("res://data/tutorial.json")
 	var tt_data = _read_json("res://data/tooltips.json")
 	tooltips = tt_data.get("entries", {}) if tt_data is Dictionary else {}
+	var br_data = _read_json("res://data/boss_rules.json")
+	boss_rules = br_data.get("pool", []) if br_data is Dictionary else []
 
 static func _check_schema(path: String, parsed: Variant) -> void:
 	var v = null
@@ -65,3 +68,9 @@ static func unlock_by_id(id: String) -> Dictionary:
 
 static func tooltip(key: String) -> Dictionary:
 	return tooltips.get(key, {})
+
+static func boss_rule_by_id(id: String) -> Dictionary:
+	for r in boss_rules:
+		if String(r.get("id", "")) == id:
+			return r
+	return {}

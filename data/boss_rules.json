@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "pool": [
+    {
+      "id": "jammed_reel",
+      "name": "Jammed Reel",
+      "desc": "Reel 3 is locked to Skull for the whole fight."
+    },
+    {
+      "id": "thin_shield",
+      "name": "Thin Shield",
+      "desc": "Shield symbols give 0 block this fight."
+    },
+    {
+      "id": "greed_tax",
+      "name": "Greed Tax",
+      "desc": "Every spin costs 2 extra coins; the fight pays out double coins."
+    }
+  ]
+}

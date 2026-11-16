@@ -15,6 +15,7 @@ func _init() -> void:
 	_test_flow()
 	_test_endless()
 	_test_unlocks()
+	_test_boss_rules()
 	_test_sequencing()
 	_test_tutorial_tooltips()
 	_test_loc_and_settings()
@@ -324,6 +325,60 @@ func _test_unlocks() -> void:
 	var s := _fresh()
 	_check(s.max_hp == 52, "no meta (disabled): max_hp stays 52, got %d" % s.max_hp)
 	MetaSave.enabled = true
+
+
+func _test_boss_rules() -> void:
+	GameData.ensure_loaded()
+	_check(GameData.boss_rules.size() >= 3, "boss rule pool >= 3, got %d" % GameData.boss_rules.size())
+	# boss fights roll a rule; regular fights do not
+	var found_boss := -1
+	for i in range(GameData.fights.size()):
+		if bool(GameData.fights[i].get("boss", false)):
+			found_boss = i
+			break
+	_check(found_boss >= 0, "a boss fight exists in fights.json")
+	var g := GameState.new()
+	g.start_run(31337)
+	g.tutorial_active = false
+	g.fight_index = found_boss
+	g._start_fight()
+	_check(g.boss_rule != "", "boss fight rolls a rule, got '%s'" % g.boss_rule)
+	_check(not GameData.boss_rule_by_id(g.boss_rule).is_empty(), "rolled rule exists in pool")
+	var g0 := GameState.new()
+	g0.start_run(31337)
+	g0.tutorial_active = false
+	_check(g0.boss_rule == "", "regular fight has no boss rule")
+	# jammed_reel: reel 3 locked to skull
+	var j := GameState.new()
+	j.start_run(1)
+	j.tutorial_active = false
+	j.boss_rule = "jammed_reel"
+	var rj: Dictionary = j.roll()
+	var col3_skulls := true
+	for row in rj["grid"]:
+		if row.size() > 2 and row[2] != "skull":
+			col3_skulls = false
+	_check(col3_skulls, "jammed_reel locks reel 3 to skull")
+	# thin_shield: shields give 0 block
+	var t := GameState.new()
+	t.start_run(1)
+	t.tutorial_active = false
+	t.boss_rule = "thin_shield"
+	var rt: Dictionary = t.resolve([["shield","shield","shield"],["coin","coin","coin"],["sword","sword","sword"]])
+	_check(int(rt["block"]) == 0, "thin_shield: 3 shields give 0 block, got %d" % int(rt["block"]))
+	# greed_tax: +2 per spin, double coin payout
+	var gr := GameState.new()
+	gr.start_run(1)
+	gr.tutorial_active = false
+	gr.boss_rule = "greed_tax"
+	gr.coins = 20
+	gr.bet = 1
+	var before := gr.coins
+	var rg: Dictionary = gr.roll()
+	_check(before - gr.coins == 3, "greed_tax spin costs bet 1 + 2 = 3, got %d" % (before - gr.coins))
+	gr.coins = 0
+	var rgr: Dictionary = gr.resolve([["coin","coin","coin"],["coin","coin","coin"],["coin","coin","coin"]])
+	_check(int(rgr["coins"]) == 9 * 1 * 2, "greed_tax pays double: 9 coins -> %d, got %d" % [9 * 2, int(rgr["coins"])])
 
 
 func _test_sequencing() -> void:

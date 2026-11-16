@@ -1,0 +1,16 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  headless:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Get Godot 4.7.2 headless
+        run: |
+          curl -sL -o godot.zip https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+          unzip -q godot.zip
+          chmod +x Godot_v4.7.2-stable_linux.x86_64
+      - name: Rules tests
+        run: ./Godot_v4.7.2-stable_linux.x86_64 --headless --path . -s tools/test_state.gd
+      - name: Balance sim gate (40-60% band, exits non-zero out of band)
+        run: ./Godot_v4.7.2-stable_linux.x86_64 --headless --path . -s tools/balance_sim.gd

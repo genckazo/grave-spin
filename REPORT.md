@@ -89,3 +89,67 @@ seeds + this REPORT.md).
   presentation is stub-level.
 - Known reported conflict unchanged: relic rarity split backlog 10/6/2/2 vs
   shipped 14/10/3/3.
+
+---
+
+# JOB 1–3 build (fix + lives + polish) — appended at HEAD 98b4741
+
+## JOB 1 — Shop wired into the game — WORKS — commit f6c231b
+- `GameState.shop_pending` set when a boss at fight index 4 or 9 is defeated;
+  main.gd routes boss win -> relic draft -> ShopScreen -> next fight (and
+  straight to the shop when the relic cap is full). Autoplay covers the shop.
+- New `scripts/screens/shop_screen.gd` presents the existing SYS4 economy
+  unchanged: coins, interest earned on entry, 3 relics with rarity prices
+  (common 10c / rare 16c / cursed 8c / epic 22c, recorded in DECISIONS.md),
+  3 permanent upgrades, 1 consumable, reroll button that re-deals stock and
+  escalates per visit, leave button. Buttons disabled when unaffordable or
+  already owned; first-visit teach line fires once.
+- New engine paths: `buy_relic`, `buy_consumable`, `relic_price`,
+  `reroll_shop` now re-deals `shop_stock`. `relic_ids()` hardened for string
+  relic entries.
+- Tests `_test_shop_flow`: shop pending only after boss fights 5/10, interest
+  paid once per visit (53 -> +5 -> 58), reroll 2->3->4 within a visit and
+  reset to 2 next visit, buy_relic/buy_consumable/buy_upgrade charge exact
+  prices, no double-buy, reroll re-deals stock.
+
+## JOB 2 — Lives: 3 per run — WORKS — commit c42924a
+- `lives = 3` per run, heart icons in the fight HUD (dim when spent), and a
+  LIVES LEFT row on the run-end ledger.
+- Death with lives left: lose 1 life, retry the SAME fight with HP restored to
+  the value held at fight entry, boss rule unchanged. At 0 lives the existing
+  run-over flow fires. Bone coins/meta and the pity timer are unchanged.
+- Sim models lives for free (retry keeps run_over=false; guard raised to 900).
+- Before/after bands (exact, 1,000 runs x 5 seeds, normal 40-60%):
+  before lives 45.9/40.8/46.3/40.7/41.4 (heal 16). With lives at heal 16:
+  61.2/58.4/62.8/57.5/59.5 — seeds 12345 and 2024 OUT above 60, stated plainly.
+  Retuned heal_between_fights 16->13: final normal 56.4/51.5/55.6/50.4/52.5 —
+  ALL IN. High Roller 15-35%: 29.0/28.5/27.3/30.0/27.6 — ALL IN.
+- Tests `_test_lives`: 3 lives at start, life_lost retry (not run-over),
+  entry HP + same fight + boss rule preserved, run ends at 0 lives, summary
+  reports lives_left.
+
+## JOB 3 — Visual polish — WORKS (look & feel only) — commit 98b4741
+- Parallax graveyard-at-dusk background drawn in-engine (gradient sky bands,
+  halo moon, far ridge and near graveyard layers with headstones + dead tree,
+  drifting at different speeds); original art, no new assets/dependencies.
+- Enemy idle bob, reel settle bounce when each reel stops, red edge flash on
+  player hit (alongside the existing full-screen flash + shake + coin burst).
+- Cabinet frame, fonts (Pirata One titles / Silkscreen headers / Pixelify
+  body) and the single UI palette were already in place and unchanged.
+- No gameplay changes: sim numbers identical to JOB 2 (see above).
+
+## Final gates at HEAD 98b4741
+- TESTS PASS failures=0 (all prior + _test_shop_flow + _test_lives).
+- Sim 1,000 x 5 seeds normal: 56.4/51.5/55.6/50.4/52.5% ALL IN 40-60, SIM PASS;
+  high_roller SIM PASS (29.0/28.5/27.3/30.0/27.6% in 15-35).
+- Autoplay through the real game loop (incl. shop): reaches end screen, no
+  script errors.
+- Fresh exports: build/macos/GraveSpin.app (launches headless clean, 0 errors,
+  quarantine cleared) + build/windows/GraveSpin.exe 115,671,968 B PE32+.
+
+## Still stubbed / not checked
+- Headless `--shots` screenshot capture hangs at engine startup in this
+  environment (worked pre-JOB3); visuals verified via autoplay + boot only.
+- Real Windows/Linux GPU run, gamepad, human playtest: not checkable here.
+- Known reported conflict unchanged: relic split backlog 10/6/2/2 vs shipped
+  14/10/3/3.

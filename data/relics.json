@@ -1,0 +1,124 @@
+[
+  {
+    "id": "whetstone",
+    "name": "Whetstone",
+    "effect": "sword_bonus",
+    "value": 1,
+    "rarity": "common",
+    "icon": "sword_icon.png",
+    "desc": "Swords deal +1 damage.",
+    "flavor": "The blade remembers every stone."
+  },
+  {
+    "id": "bulwark_sigil",
+    "name": "Bulwark Sigil",
+    "effect": "block_bonus",
+    "value": 1,
+    "rarity": "common",
+    "icon": "shield_icon.png",
+    "desc": "Shields give +1 block each.",
+    "flavor": "A promise carved in iron."
+  },
+  {
+    "id": "leech_flask",
+    "name": "Leech Flask",
+    "effect": "heal_bonus",
+    "value": 1,
+    "rarity": "common",
+    "icon": "potion_icon.png",
+    "desc": "Potions heal +1 extra.",
+    "flavor": "It bites back, but only a little."
+  },
+  {
+    "id": "gilded_reel",
+    "name": "Gilded Reel",
+    "effect": "coin_bonus",
+    "value": 1,
+    "rarity": "common",
+    "icon": "coin_icon.png",
+    "desc": "Coins pay out +1 extra each.",
+    "flavor": "The house always takes its cut. Now you do too."
+  },
+  {
+    "id": "bone_ward",
+    "name": "Bone Ward",
+    "effect": "skull_reduction",
+    "value": 1,
+    "rarity": "common",
+    "icon": "skull_icon.png",
+    "desc": "Skulls add only +1 damage instead of +2.",
+    "flavor": "The dead nod to their own."
+  },
+  {
+    "id": "grave_pact",
+    "name": "Grave Pact",
+    "effect": "sword_bonus",
+    "value": 2,
+    "value2": 8,
+    "rarity": "cursed",
+    "icon": "card_icon.png",
+    "desc": "Swords deal +2 damage. Max HP -8 when taken.",
+    "flavor": "Sign here. The ink is already warm."
+  },
+  {
+    "id": "second_wind",
+    "name": "Second Wind",
+    "effect": "second_wind",
+    "value": 8,
+    "rarity": "rare",
+    "icon": "suit_hearts_icon.png",
+    "desc": "Once per run: survive lethal damage and return with 8 HP.",
+    "flavor": "Death checks the machine. It does not check twice."
+  },
+  {
+    "id": "lucky_seventh",
+    "name": "Lucky Seventh",
+    "effect": "lucky_seventh",
+    "value": 7,
+    "value2": 2,
+    "rarity": "rare",
+    "icon": "dice_sword_icon.png",
+    "desc": "Every 7th pull rigs the reels to show at least 2 swords.",
+    "flavor": "Seven is not a lucky number here. It is a promise."
+  },
+  {
+    "id": "iron_frame",
+    "name": "Iron Frame",
+    "effect": "start_block",
+    "value": 4,
+    "rarity": "common",
+    "icon": "dice_shield_icon.png",
+    "desc": "Start every fight with 4 block.",
+    "flavor": "The machine was built to take a beating."
+  },
+  {
+    "id": "bloodstone",
+    "name": "Bloodstone",
+    "effect": "blood_coin",
+    "value": 1,
+    "rarity": "rare",
+    "icon": "gem_icon.png",
+    "desc": "Gain 1 coin for each point of damage you take.",
+    "flavor": "Pain is just a deposit."
+  },
+  {
+    "id": "skull_crown",
+    "name": "Skull Crown",
+    "effect": "skull_damage",
+    "value": 1,
+    "rarity": "rare",
+    "icon": "crown_a_icon.png",
+    "desc": "Each skull also deals 1 damage to the enemy.",
+    "flavor": "Wear the thing that wants to eat you."
+  },
+  {
+    "id": "dead_mans_hand",
+    "name": "Dead Man's Hand",
+    "effect": "triple_sword_bonus",
+    "value": 6,
+    "rarity": "cursed",
+    "icon": "dice_skull_icon.png",
+    "desc": "A payline of three swords deals +6 bonus damage.",
+    "flavor": "Three blades. No bluff."
+  }
+]

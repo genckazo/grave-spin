@@ -1,0 +1,57 @@
+[
+  {
+    "name": "Rattling Bones",
+    "type": "skeleton",
+    "hp": 30,
+    "intents": [
+      {"type": "attack", "value": 5},
+      {"type": "attack", "value": 6},
+      {"type": "heavy", "value": 9}
+    ],
+    "intro": "A skeleton drags itself upright. The machine hums."
+  },
+  {
+    "name": "Ooze of the Deep",
+    "type": "slime",
+    "hp": 34,
+    "intents": [
+      {"type": "attack", "value": 6},
+      {"type": "defend", "value": 6},
+      {"type": "attack", "value": 8}
+    ],
+    "intro": "Something wet settles into the reels."
+  },
+  {
+    "name": "The Whisperer",
+    "type": "cultist",
+    "hp": 40,
+    "intents": [
+      {"type": "attack", "value": 7},
+      {"type": "buff", "value": 2},
+      {"type": "heavy", "value": 12}
+    ],
+    "intro": "A hooded shape speaks a word you almost know."
+  },
+  {
+    "name": "Bone Captain",
+    "type": "skeleton",
+    "hp": 50,
+    "intents": [
+      {"type": "attack", "value": 8},
+      {"type": "attack", "value": 9},
+      {"type": "heavy", "value": 13}
+    ],
+    "intro": "The floor is thick with the last crew."
+  },
+  {
+    "name": "The Grave Warden",
+    "type": "cultist",
+    "hp": 64,
+    "intents": [
+      {"type": "attack", "value": 9},
+      {"type": "buff", "value": 2},
+      {"type": "heavy", "value": 15}
+    ],
+    "intro": "The machine was built to feed it. Tonight it eats."
+  }
+]

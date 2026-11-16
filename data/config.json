@@ -1,0 +1,10 @@
+{
+  "player_hp": 52,
+  "heal_between_fights": 8,
+  "symbols": ["sword", "shield", "potion", "coin", "skull"],
+  "weights": {"sword": 34, "shield": 24, "potion": 12, "coin": 18, "skull": 12},
+  "values": {"sword": 3, "shield": 2, "potion": 2, "coin": 1, "skull": 2},
+  "max_relics": 4,
+  "bone_coins_per_fight": 2,
+  "coins_per_bone": 8
+}

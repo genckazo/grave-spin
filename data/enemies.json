@@ -1,0 +1,23 @@
+{
+  "skeleton": {
+    "label": "SKELETON",
+    "sprite": "res://assets/generated/skeleton.png",
+    "skull_extra": 2,
+    "blurb": "Bone and rust. It has been waiting.",
+    "curse": "Its presence feeds the skulls (+skull odds)."
+  },
+  "slime": {
+    "label": "SLIME",
+    "sprite": "res://assets/generated/slime.png",
+    "skull_extra": 1,
+    "blurb": "It digests hope first.",
+    "curse": "It sticks to the reels (+skull odds)."
+  },
+  "cultist": {
+    "label": "CULTIST",
+    "sprite": "res://assets/generated/cultist.png",
+    "skull_extra": 4,
+    "blurb": "It has already counted your bones.",
+    "curse": "It curses the machine (+4 skull odds)."
+  }
+}

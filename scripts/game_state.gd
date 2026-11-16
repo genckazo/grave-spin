@@ -5,6 +5,7 @@ extends RefCounted
 
 const SYMBOLS := ["sword", "shield", "potion", "coin", "skull"]
 const MAX_LOG := 40
+const PITY_MAX := 5
 
 var config: Dictionary = {}
 var fights: Array = []
@@ -27,6 +28,10 @@ var enemy_power: int = 0
 var intent_index: int = 0
 
 var spin_count: int = 0
+var last_bet := 1
+var pity := 0
+var last_jackpot := false
+var free_spin := false
 var second_wind_used: bool = false
 var run_over: bool = false
 var victory: bool = false
@@ -45,12 +50,16 @@ func start_run(seed_value: int = 0) -> void:
 	hp = max_hp
 	coins = 0
 	block = 0
-	bet = bet_min()
 	relics = []
 	fight_index = 0
 	fights_won = 0
 	floor = 1
 	spin_count = 0
+	bet = 1
+	last_bet = 1
+	pity = 0
+	last_jackpot = false
+	free_spin = false
 	second_wind_used = false
 	run_over = false
 	victory = false
@@ -132,6 +141,12 @@ func get_intent() -> Dictionary:
 
 func roll() -> Dictionary:
 	spin_count += 1
+	var free := free_spin
+	free_spin = false
+	last_jackpot = false
+	last_bet = clamp(bet, 1, maxi(1, coins))
+	if not free:
+		coins = maxi(0, coins - last_bet)
 	var weights: Dictionary = (config["weights"] as Dictionary).duplicate()
 	weights["skull"] = int(weights.get("skull", 0)) + int(enemy.get("skull_extra", 0))
 	var grid: Array = []
@@ -160,7 +175,23 @@ func roll() -> Dictionary:
 		for r in range(3):
 			if grid[r][0] == "sword" and grid[r][1] == "sword" and grid[r][2] != "sword":
 				near_miss = r
-	return {"grid": grid, "near_miss": near_miss, "rigged": rigged}
+	var jackpot := _apply_pity(grid, near_miss)
+	if jackpot:
+		last_jackpot = true
+		free_spin = true
+		_log("JACKPOT! The pity timer pays out — free re-spin.", "gold")
+	return {"grid": grid, "near_miss": near_miss, "jackpot": jackpot, "rigged": rigged}
+
+
+func _apply_pity(grid: Array, near_row: int) -> bool:
+	if near_row < 0:
+		return false
+	pity += 1
+	if pity >= PITY_MAX:
+		grid[near_row] = ["sword", "sword", "sword"]
+		pity = 0
+		return true
+	return false
 
 
 func resolve(grid: Array) -> Dictionary:
@@ -215,10 +246,13 @@ func resolve(grid: Array) -> Dictionary:
 				"coin": co += 1
 				"skull": sk += 1
 
-		var dmg := sw * (int(values["sword"]) + sword_bonus) * bet
+		var dmg := sw * (int(values["sword"]) + sword_bonus) * last_bet
+		if last_jackpot and sw == 3:
+			dmg *= 2
+			_log("Jackpot: the payline pays double.", "gold")
 		if sw == 3 and triple_bonus > 0:
-			dmg += triple_bonus * bet
-			_log("Dead Man's Hand: three swords. +%d." % (triple_bonus * bet), "cursed")
+			dmg += triple_bonus * last_bet
+			_log("Dead Man's Hand: three swords. +%d." % (triple_bonus * last_bet), "cursed")
 		if skull_damage > 0 and sk > 0:
 			dmg += sk * skull_damage
 
@@ -236,7 +270,7 @@ func resolve(grid: Array) -> Dictionary:
 		report["heal"] += healed
 		stats["healed"] += healed
 
-		var coin_gain := co * (int(values["coin"]) + coin_bonus) * bet
+		var coin_gain := co * (int(values["coin"]) + coin_bonus) * last_bet
 		coins += coin_gain
 		report["coins"] += coin_gain
 
@@ -281,7 +315,7 @@ func resolve(grid: Array) -> Dictionary:
 
 	var intent := get_intent()
 	report["intent"] = intent
-	var penalty := maxi(0, int(values["skull"]) - RelicEngine.total(self, "skull_reduction")) * bet
+	var penalty := maxi(0, int(values["skull"]) - RelicEngine.total(self, "skull_reduction")) * last_bet
 	report["skull_penalty"] = penalty
 
 	var skull_count := total_skulls

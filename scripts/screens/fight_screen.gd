@@ -48,6 +48,10 @@ var lever: TextureRect
 var reels: Array = []
 var pull_button: Button
 var pull_hint: Label
+var bet_label: Label
+var bet_minus: Button
+var bet_plus: Button
+var pity_label: Label
 var pause_button: Button
 var pause_overlay: Control
 var resume_button: Button
@@ -361,6 +365,26 @@ func _build_bottom() -> void:
 	pull_hint.size = Vector2(180, 10)
 	shake_root.add_child(pull_hint)
 
+	bet_minus = UI.button("-", 9, 26, 24)
+	bet_minus.position = Vector2(196, 338)
+	bet_minus.tooltip_text = "Lower bet ([)"
+	bet_minus.pressed.connect(func(): _change_bet(-1))
+	shake_root.add_child(bet_minus)
+	bet_label = UI.shadowed(UI.label("BET x1", 8, UI.GOLD, "header"))
+	bet_label.position = Vector2(226, 341)
+	bet_label.size = Vector2(56, 10)
+	shake_root.add_child(bet_label)
+	bet_plus = UI.button("+", 9, 26, 24)
+	bet_plus.position = Vector2(286, 338)
+	bet_plus.tooltip_text = "Raise bet (])"
+	bet_plus.pressed.connect(func(): _change_bet(1))
+	shake_root.add_child(bet_plus)
+
+	pity_label = UI.label("", 6, UI.PURPLE, "header")
+	pity_label.position = Vector2(352, 341)
+	pity_label.size = Vector2(90, 10)
+	shake_root.add_child(pity_label)
+
 	var pause_hint := UI.label("ESC  PAUSE", 6, UI.DIM, "header")
 	pause_hint.position = Vector2(526, 341)
 	pause_hint.size = Vector2(100, 10)
@@ -434,6 +458,8 @@ func _refresh_all() -> void:
 	UI.set_bar(hp_bar, float(state.hp) / float(max(1, state.max_hp)))
 	block_text.text = str(state.block)
 	coin_text.text = str(state.coins)
+	bet_label.text = "BET x%d" % state.bet
+	pity_label.text = "PITY %d/%d" % [state.pity, state.PITY_MAX] if state.pity > 0 else ""
 	fight_text.text = "FLOOR %d · FIGHT %d / %d" % [int(state.enemy.get("floor", 1)), state.fight_index + 1, state.fights.size()]
 	for i in range(pips.size()):
 		pips[i].color = UI.GOLD if i <= state.fight_index else Color("3a3244")
@@ -1082,3 +1108,17 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		if not busy:
 			_on_pull()
 			get_viewport().set_input_as_handled()
+	elif key == KEY_BRACKETLEFT and not paused and not busy:
+		_change_bet(-1)
+		get_viewport().set_input_as_handled()
+	elif key == KEY_BRACKETRIGHT and not paused and not busy:
+		_change_bet(1)
+		get_viewport().set_input_as_handled()
+
+
+func _change_bet(delta: int) -> void:
+	if state == null or state.run_over:
+		return
+	if state.set_bet(state.bet + delta):
+		Sfx.play("click")
+		bet_label.text = "BET x%d" % state.bet

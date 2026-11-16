@@ -58,6 +58,10 @@ var pause_overlay: Control
 var resume_button: Button
 
 var _shown_hp := 0
+var _bob_t := 0.0
+var _enemy_base_y := 10.0
+var edge_frame: Control
+var _edge_tween: Tween
 var _shown_enemy_hp := 0
 var _shown_coins := 0
 var _shown_block := 0
@@ -95,6 +99,13 @@ func _ready() -> void:
 
 func _exit_tree() -> void:
 	Engine.time_scale = 1.0
+
+
+func _process(delta: float) -> void:
+	# Enemies never sit fully still: a subtle idle bob.
+	_bob_t += delta
+	if enemy_art != null:
+		enemy_art.position.y = _enemy_base_y + sin(_bob_t * 2.1) * 3.0
 
 
 # ---------------------------------------------------------------- construction
@@ -401,6 +412,25 @@ func _build_bottom() -> void:
 
 
 func _build_flash() -> void:
+	edge_frame = Control.new()
+	edge_frame.set_anchors_preset(Control.PRESET_FULL_RECT)
+	edge_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	edge_frame.modulate.a = 0.0
+	var ec := Color(0.85, 0.08, 0.05, 1.0)
+	for rect in [
+		[Vector2(0, 0), Vector2(640, 4)],
+		[Vector2(0, 356), Vector2(640, 4)],
+		[Vector2(0, 0), Vector2(4, 360)],
+		[Vector2(636, 0), Vector2(4, 360)],
+	]:
+		var edge := ColorRect.new()
+		edge.color = ec
+		edge.position = rect[0]
+		edge.size = rect[1]
+		edge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		edge_frame.add_child(edge)
+	shake_root.add_child(edge_frame)
+
 	flash = ColorRect.new()
 	flash.color = Color(0, 0, 0, 0)
 	flash.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -697,6 +727,12 @@ func _on_reel_stop(c: int, grid: Array) -> void:
 	var reel: Dictionary = reels[c]
 	var icons: Array = reel["icons"]
 	reel["strip"].position.y = 0.0
+	# Settle bounce: the column squashes then relaxes.
+	var col: Control = reel["col"]
+	col.pivot_offset = Vector2(CELL * 0.5, CELL * 1.5)
+	col.scale = Vector2(1.07, 0.94)
+	var bt := create_tween()
+	bt.tween_property(col, "scale", Vector2(1.0, 1.0), 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	for i in range(STRIP_ROWS):
 		icons[i].texture = _symbol_texture(_random_symbol())
 	for r in range(3):
@@ -874,6 +910,7 @@ func _enemy_turn(report: Dictionary, intent: Dictionary) -> void:
 
 		Sfx.play("hurt", 1.0, -3.0)
 		_flash(Color(0.75, 0.08, 0.06, 0.22), 0.28)
+		_edge_flash()
 		_shake(2.8 + float(report["skulls"]), 0.26)
 		if blocked > 0:
 			Sfx.play("block", 0.9, -2.0)
@@ -1146,3 +1183,13 @@ func _change_bet(delta: int) -> void:
 	if state.set_bet(state.bet + delta):
 		Sfx.play("click")
 		bet_label.text = "BET x%d" % state.bet
+
+
+func _edge_flash() -> void:
+	if edge_frame == null:
+		return
+	if _edge_tween != null and _edge_tween.is_valid():
+		_edge_tween.kill()
+	_edge_tween = create_tween()
+	_edge_tween.tween_property(edge_frame, "modulate:a", 0.85, 0.06)
+	_edge_tween.tween_property(edge_frame, "modulate:a", 0.0, 0.4)

@@ -50,15 +50,45 @@ func _ready() -> void:
 		_run_autoplay.call_deferred()
 
 
+var _bg_time := 0.0
+var _bg_layers: Array = []
+
+
+func _process(delta: float) -> void:
+	# Slow independent drift per layer = parallax. Layers are 1280 wide (two
+	# screens) and wrap, so the drift never shows an edge.
+	_bg_time += delta
+	for layer in _bg_layers:
+		var sp: float = layer["speed"]
+		layer["node"].position.x = -fmod(_bg_time * sp, 640.0)
+
+
 func _build_background() -> void:
-	var bg := TextureRect.new()
-	bg.texture = load("res://assets/generated/background.png")
-	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	bg.stretch_mode = TextureRect.STRETCH_SCALE
-	bg.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(bg)
+	# Dusk sky: stacked gradient bands, drawn in-engine (original art).
+	var sky := [Color("150e2b"), Color("33183d"), Color("5c2547"), Color("93374a"), Color("cf7440")]
+	for i in range(sky.size()):
+		var band := ColorRect.new()
+		band.color = sky[i]
+		band.position = Vector2(0, i * 72.0)
+		band.size = Vector2(640, 73)
+		band.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(band)
+
+	# Moon with a soft halo.
+	var moon := Control.new()
+	moon.position = Vector2(496, 26)
+	moon.size = Vector2(64, 64)
+	moon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	moon.draw.connect(func() -> void:
+		moon.draw_circle(Vector2(32, 32), 26, Color(0.95, 0.88, 0.66, 0.16))
+		moon.draw_circle(Vector2(32, 32), 20, Color("f2e3b6"))
+	)
+	add_child(moon)
+
+	# Far ridge — slow layer.
+	add_child(_ridge_layer(Color("241536"), 210.0, 0.10, 26.0))
+	# Near graveyard — faster layer with headstones and a dead tree.
+	add_child(_graveyard_layer())
 
 	var shade := ColorRect.new()
 	shade.color = Color(0.02, 0.01, 0.03, 0.18)
@@ -84,6 +114,61 @@ func _build_background() -> void:
 	_dust.texture = load("res://assets/generated/dust.png")
 	_dust.emitting = true
 	add_child(_dust)
+
+
+func _ridge_layer(color: Color, base_y: float, speed: float, amp: float) -> Control:
+	var c := Control.new()
+	c.position = Vector2(0, 0)
+	c.size = Vector2(1280, 360)
+	c.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var pts := PackedVector2Array()
+	for x in range(0, 1281, 40):
+		pts.append(Vector2(x, base_y - amp * (0.5 + 0.5 * sin(x * 0.011)) - amp * 0.5 * sin(x * 0.031 + 2.0)))
+	pts.append(Vector2(1280, 360))
+	pts.append(Vector2(0, 360))
+	var poly := Polygon2D.new()
+	poly.polygon = pts
+	poly.color = color
+	c.add_child(poly)
+	_bg_layers.append({"node": c, "speed": speed})
+	return c
+
+
+func _graveyard_layer() -> Control:
+	var c := Control.new()
+	c.position = Vector2(0, 0)
+	c.size = Vector2(1280, 360)
+	c.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var ground := ColorRect.new()
+	ground.color = Color("120a1e")
+	ground.position = Vector2(0, 268)
+	ground.size = Vector2(1280, 92)
+	c.add_child(ground)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 777001
+	for i in range(9):
+		var x := 30.0 + i * 140.0 + rng.randf() * 40.0
+		var h := 22.0 + rng.randf() * 16.0
+		var stone := Polygon2D.new()
+		var w := 12.0 + rng.randf() * 6.0
+		stone.polygon = PackedVector2Array([
+			Vector2(x, 268), Vector2(x, 268 - h + 6), Vector2(x + w * 0.5 - 3, 268 - h),
+			Vector2(x + w * 0.5 + 3, 268 - h), Vector2(x + w, 268 - h + 6), Vector2(x + w, 268),
+		])
+		stone.color = Color("1d1030")
+		c.add_child(stone)
+	# A crooked dead tree silhouette.
+	var tree := Polygon2D.new()
+	tree.polygon = PackedVector2Array([
+		Vector2(600, 268), Vector2(604, 200), Vector2(598, 200), Vector2(610, 168),
+		Vector2(604, 170), Vector2(606, 150), Vector2(612, 152), Vector2(608, 172),
+		Vector2(620, 158), Vector2(614, 176), Vector2(622, 210), Vector2(616, 210),
+		Vector2(620, 268),
+	])
+	tree.color = Color("0c0714")
+	c.add_child(tree)
+	_bg_layers.append({"node": c, "speed": 0.22})
+	return c
 
 
 func set_screen(node: Control) -> void:

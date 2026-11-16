@@ -270,6 +270,8 @@ func resolve(grid: Array) -> Dictionary:
 		"enemy_action": "",
 		"intent": get_intent(),
 		"second_wind": false,
+		"sequence": [],
+		"fast": _fast_mode(),
 	}
 
 	var total_skulls := 0
@@ -354,6 +356,7 @@ func resolve(grid: Array) -> Dictionary:
 
 	enemy_block = 0
 
+	report["sequence"] = build_sequence(grid)
 	if enemy_hp <= 0:
 		report["enemy_dead"] = true
 		_log("%s falls. The machine pays out." % enemy["name"], "good")
@@ -411,6 +414,7 @@ func resolve(grid: Array) -> Dictionary:
 
 	intent_index += 1
 	block = 0
+	report["sequence"] = build_sequence(grid)
 	return report
 
 
@@ -589,3 +593,59 @@ func _teach(key: String) -> void:
 
 func teach_line(key: String) -> String:
 	return String(GameData.tutorial.get("teach_lines", {}).get(key, ""))
+
+func _fast_mode() -> bool:
+	if not MetaSave.enabled:
+		return false
+	var settings: Dictionary = MetaSave.load_meta().get("settings", {})
+	return bool(settings.get("fast_mode", false))
+
+
+func build_sequence(grid: Array) -> Array:
+	## Replays the spin symbol-by-symbol, left-to-right (row-major), then relics
+	## in slot order. Each step carries the running tallies so the final number is
+	## fully explained. Mirrors resolve() math; UI animates these steps (<=2.5s,
+	## fast mode skips to the end).
+	var values: Dictionary = config["values"]
+	var steps: Array = []
+	var tally := {"damage": 0, "block": 0, "self_damage": 0, "heal": 0, "coins": 0}
+	var sword_bonus := RelicEngine.total(self, "sword_bonus") + RelicEngine.total(self, "all_bonus") + RelicEngine.synergy_bonus(self, "sword")
+	var block_bonus := RelicEngine.total(self, "block_bonus") + RelicEngine.total(self, "all_bonus")
+	var heal_bonus := RelicEngine.total(self, "heal_bonus") + RelicEngine.total(self, "all_bonus")
+	var coin_bonus := RelicEngine.total(self, "coin_bonus") + RelicEngine.total(self, "all_bonus") + RelicEngine.synergy_bonus(self, "coin")
+	var penalty := maxi(0, int(values["skull"]) - RelicEngine.total(self, "skull_reduction") - RelicEngine.synergy_bonus(self, "skull")) * last_bet
+	var skulls := 0
+	for r in range(grid.size()):
+		var row: Array = grid[r]
+		for c in range(row.size()):
+			var sym := String(row[c])
+			var desc := ""
+			match sym:
+				"sword":
+					var d: int = (int(values["sword"]) + sword_bonus) * last_bet
+					tally["damage"] += d
+					desc = "Sword deals %d" % d
+				"shield":
+					var b: int = int(values["shield"]) + block_bonus
+					tally["block"] += b
+					desc = "Shield +%d block" % b
+				"potion":
+					var h: int = int(values["potion"]) + heal_bonus
+					tally["heal"] += h
+					desc = "Potion heals %d" % h
+				"coin":
+					var g: int = (int(values["coin"]) + coin_bonus) * last_bet
+					tally["coins"] += g
+					desc = "Coin +%d coins" % g
+				"skull":
+					skulls += 1
+					tally["self_damage"] += penalty
+					desc = "Skull: +%d self-damage on enemy attack" % penalty
+				_:
+					desc = "Blank"
+			steps.append({"kind": "symbol", "row": r, "col": c, "symbol": sym, "desc": desc, "tally": tally.duplicate()})
+	for i in range(relics.size()):
+		var r: Dictionary = relics[i]
+		steps.append({"kind": "relic", "slot": i, "id": String(r.get("id", "")), "name": String(r.get("name", "")), "desc": String(r.get("text", "")), "tally": tally.duplicate()})
+	steps.append({"kind": "total", "tally": tally.duplicate(), "skulls": skulls, "desc": "Final: %d damage, %d block, %d self-damage" % [tally["damage"], tally["block"], tally["self_damage"]]})
+	return steps

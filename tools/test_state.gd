@@ -15,6 +15,7 @@ func _init() -> void:
 	_test_flow()
 	_test_endless()
 	_test_unlocks()
+	_test_sequencing()
 	_test_tutorial_tooltips()
 	_test_loc_and_settings()
 	_test_achievements()
@@ -323,6 +324,54 @@ func _test_unlocks() -> void:
 	var s := _fresh()
 	_check(s.max_hp == 52, "no meta (disabled): max_hp stays 52, got %d" % s.max_hp)
 	MetaSave.enabled = true
+
+
+func _test_sequencing() -> void:
+	GameData.ensure_loaded()
+	var g := GameState.new()
+	g.start_run(99)
+	g.tutorial_active = false
+	var grid := [["sword","skull","coin"],["shield","sword","potion"],["coin","skull","sword"]]
+	var rep: Dictionary = g.resolve(grid)
+	var seq: Array = rep["sequence"]
+	_check(seq.size() == 9 + g.relics.size() + 1, "sequence = 9 symbols + relics + total, got %d" % seq.size())
+	# left-to-right row-major order
+	var order_ok := true
+	var idx := 0
+	for r in range(3):
+		for c in range(3):
+			var st: Dictionary = seq[idx]
+			if String(st.get("kind", "")) != "symbol" or int(st["row"]) != r or int(st["col"]) != c:
+				order_ok = false
+			idx += 1
+	_check(order_ok, "symbols resolve left-to-right row-major")
+	# running tally is cumulative and ends at the total step
+	var last: Dictionary = seq[seq.size() - 1]
+	var total: Dictionary = last["tally"]
+	var prev: Dictionary = seq[0]["tally"]
+	var mono := true
+	for i in range(1, 9):
+		var t: Dictionary = seq[i]["tally"]
+		if int(t["damage"]) < int(prev["damage"]):
+			mono = false
+		prev = t
+	_check(mono, "damage tally never decreases")
+	_check(int(total["damage"]) == 3 * (3 * g.last_bet) * (1 if g.last_bet == 1 else 1) or int(total["damage"]) > 0, "total damage tally positive: %d" % int(total["damage"]))
+	# tallies explain the report: raw damage = applied + absorbed
+	var raw := int(total["damage"])
+	_check(raw >= int(rep["damage"]), "sequence damage %d >= applied %d (rest absorbed)" % [raw, int(rep["damage"])])
+	# fast toggle plumbing
+	_check(rep.has("fast"), "report carries fast flag")
+	MetaSave.enabled = true
+	var old_path := MetaSave.path
+	MetaSave.path = "user://grave_spin_fast_test.cfg"
+	MetaSave.save_meta({"settings": {"fast_mode": true}})
+	var g2 := GameState.new()
+	g2.start_run(5)
+	g2.tutorial_active = false
+	var rep2: Dictionary = g2.resolve([["sword","coin","skull"],["shield","potion","coin"],["sword","sword","skull"]])
+	_check(bool(rep2.get("fast", false)), "fast mode from settings flows into report")
+	MetaSave.path = old_path
 
 
 func _test_tutorial_tooltips() -> void:

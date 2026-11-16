@@ -198,7 +198,7 @@ func _test_relics() -> void:
 	vamp.enemy_hp = 1
 	vamp.resolve([["sword", "sword", "sword"], ["shield", "shield", "shield"], ["shield", "shield", "shield"]])
 	vamp.on_enemy_defeated()
-	_check(int(vamp.hp) == 40, "Vampiric Edge: kill heals 1 on top of the 9 between-fight heal (30->40)")
+	_check(int(vamp.hp) == 46, "Vampiric Edge: kill heals 1 on top of the 15 between-fight heal (30->46), got %d" % int(vamp.hp))
 
 	var pockets := _fresh()
 	_add(pockets, "deep_pockets")
@@ -278,7 +278,7 @@ func _test_flow() -> void:
 	next.resolve(_grid("sword"))
 	var next_outcome: String = next.on_enemy_defeated()
 	_check(next_outcome == "draft", "an early win returns draft")
-	_check(next.hp == 39, "an early win heals 9 between fights")
+	_check(next.hp == 45, "an early win heals 15 between fights (30->45), got %d" % next.hp)
 	_check(next.fights_won == 1, "fights_won increments")
 
 	var bones := _fresh()

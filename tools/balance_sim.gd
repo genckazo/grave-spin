@@ -18,8 +18,8 @@ func _init() -> void:
 	var band_low := 0.40
 	var band_high := 0.60
 	if mode == "high_roller":
-		band_low = 0.25
-		band_high = 0.45
+		band_low = 0.15
+		band_high = 0.35
 	var all_ok := true
 	for seed_base in SEEDS:
 		var wins := 0

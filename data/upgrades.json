@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "upgrades": [
+    {
+      "id": "relic_slot",
+      "name": "Extra Relic Slot",
+      "desc": "+1 max relic slot this run.",
+      "price": 15,
+      "effect": "max_relics_bonus_shop",
+      "value": 1
+    },
+    {
+      "id": "reroll_discount",
+      "name": "Reroll Discount",
+      "desc": "Reroll costs 1 less in every shop (min 1).",
+      "price": 12,
+      "effect": "reroll_discount",
+      "value": 1
+    },
+    {
+      "id": "max_hp_8",
+      "name": "Marrow Tonic",
+      "desc": "+8 max HP this run.",
+      "price": 10,
+      "effect": "max_hp_shop",
+      "value": 8
+    }
+  ]
+}

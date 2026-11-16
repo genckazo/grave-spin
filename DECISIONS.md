@@ -34,3 +34,9 @@ Choices made where the brief left room; simpler option taken on ambiguity.
 - **Not tested**: real GPU rendering on Windows, gamepad input, and long
   playtest feel (timing/juice judged from screenshots only, since this
   environment is headless macOS).
+
+## Shop economy prices (SYS4)
+- Reroll: starts at 2 coins, +1 per reroll within a shop visit, resets next visit.
+- Interest: +1 coin per 10 held at shop entry, capped at +5.
+- Permanent upgrades (max 1 per shop): Extra Relic Slot 15c, Reroll Discount 12c, Marrow Tonic (+8 max HP) 10c.
+- Tuned against the 1000-run sim gate (40-60% normal band): heal_between_fights 15 after boss rules (see SYS3 retune).

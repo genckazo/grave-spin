@@ -15,6 +15,7 @@ func _init() -> void:
 	_test_flow()
 	_test_endless()
 	_test_unlocks()
+	_test_shop()
 	_test_boss_rules()
 	_test_sequencing()
 	_test_tutorial_tooltips()
@@ -325,6 +326,45 @@ func _test_unlocks() -> void:
 	var s := _fresh()
 	_check(s.max_hp == 52, "no meta (disabled): max_hp stays 52, got %d" % s.max_hp)
 	MetaSave.enabled = true
+
+
+func _test_shop() -> void:
+	GameData.ensure_loaded()
+	_check(GameData.upgrades.size() == 3, "3 permanent upgrades defined, got %d" % GameData.upgrades.size())
+	var g := GameState.new()
+	g.start_run(11)
+	g.tutorial_active = false
+	g.coins = 57
+	var stock: Dictionary = g.open_shop()
+	_check(int(stock["interest"]) == 5, "interest capped at +5 for 57 coins, got %d" % int(stock["interest"]))
+	_check(g.coins == 62, "interest paid on entry: 57 -> 62, got %d" % g.coins)
+	_check(int(stock["reroll_cost"]) == 2, "reroll starts at 2, got %d" % int(stock["reroll_cost"]))
+	_check(g.teach_seen.get("first_shop", false), "first shop visit teaches")
+	var c0 := g.coins
+	_check(g.reroll_shop() and g.coins == c0 - 2, "first reroll costs 2")
+	_check(g.shop_reroll_cost() == 3, "second reroll costs 3")
+	_check(g.reroll_shop() and g.shop_reroll_cost() == 4, "reroll cost +1 per reroll in visit")
+	# resets next visit
+	g.coins = 100
+	var stock2: Dictionary = g.open_shop()
+	_check(int(stock2["reroll_cost"]) == 2, "reroll cost resets next shop visit")
+	_check(int(stock2["interest"]) == 5, "interest cap +5 again (100 coins)")
+	# upgrades: max 1 per shop, price deducted
+	g.coins = 100
+	g.open_shop()
+	_check(g.buy_upgrade("max_hp_8"), "bought Marrow Tonic for 10")
+	_check(g.coins == 95 and g.max_hp == 52 + 8, "coins 105-10=95, max_hp 60, got %d/%d" % [g.coins, g.max_hp])
+	_check(not g.buy_upgrade("max_hp_8"), "max 1 per shop: second Marrow Tonic refused")
+	_check(g.buy_upgrade("reroll_discount"), "bought Reroll Discount for 12")
+	_check(g.shop_reroll_cost() == 1, "discounted reroll cost = max(1, 2+0-1) = 1, got %d" % g.shop_reroll_cost())
+	_check(g.buy_upgrade("relic_slot"), "bought Extra Relic Slot for 15")
+	_check(g.shop_relic_cap() == 4 + 1, "relic cap 4 -> 5 with slot upgrade, got %d" % g.shop_relic_cap())
+	var poor := GameState.new()
+	poor.start_run(3)
+	poor.coins = 1
+	poor.open_shop()
+	_check(not poor.buy_upgrade("max_hp_8"), "cannot afford 10c upgrade with 1 coin")
+	_check(not poor.reroll_shop(), "cannot reroll with 1 coin (cost 2)")
 
 
 func _test_boss_rules() -> void:

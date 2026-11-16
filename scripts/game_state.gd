@@ -39,6 +39,10 @@ var endless_depth: int = 0
 var difficulty := "normal"
 var tutorial_active := false
 var boss_rule := ""
+var shop_rerolls := 0
+var shop_upgrades_bought: Array = []
+var shop_interest := 0
+var permanent_reroll_discount := 0
 var teach_seen: Dictionary = {}
 var diff_hp := 1.0
 var diff_atk := 1.0
@@ -480,7 +484,7 @@ func _endless_fight(depth: int) -> Dictionary:
 
 
 func draft_options() -> Array:
-	var cap := int(config["max_relics"]) + RelicEngine.total(self, "max_relics_bonus")
+	var cap := shop_relic_cap()
 	if relics.size() >= cap:
 		return []
 	var owned := relic_ids()
@@ -664,3 +668,64 @@ func build_sequence(grid: Array) -> Array:
 		steps.append({"kind": "relic", "slot": i, "id": String(r.get("id", "")), "name": String(r.get("name", "")), "desc": String(r.get("text", "")), "tally": tally.duplicate()})
 	steps.append({"kind": "total", "tally": tally.duplicate(), "skulls": skulls, "desc": "Final: %d damage, %d block, %d self-damage" % [tally["damage"], tally["block"], tally["self_damage"]]})
 	return steps
+
+func open_shop() -> Dictionary:
+	## Shop visit: interest paid once on entry, reroll cost scales per visit,
+	## resets on the next shop. Teaches on first visit.
+	_teach("first_shop")
+	shop_rerolls = 0
+	shop_upgrades_bought = []
+	shop_interest = mini(5, coins / 10)
+	coins += shop_interest
+	var stock := {
+		"relics": draft_options(),
+		"upgrades": _shop_upgrades(),
+		"reroll_cost": shop_reroll_cost(),
+		"interest": shop_interest,
+		"coins": coins,
+	}
+	return stock
+
+
+func shop_reroll_cost() -> int:
+	return maxi(1, 2 + shop_rerolls - permanent_reroll_discount)
+
+
+func _shop_upgrades() -> Array:
+	var out: Array = []
+	for u in GameData.upgrades:
+		if not shop_upgrades_bought.has(String(u["id"])):
+			out.append(u)
+	return out
+
+
+func reroll_shop() -> bool:
+	var cost := shop_reroll_cost()
+	if coins < cost:
+		return false
+	coins -= cost
+	shop_rerolls += 1
+	return true
+
+
+func buy_upgrade(id: String) -> bool:
+	if shop_upgrades_bought.has(id):
+		return false
+	var u := GameData.upgrade_by_id(id)
+	if u.is_empty() or coins < int(u.get("price", 0)):
+		return false
+	coins -= int(u["price"])
+	shop_upgrades_bought.append(id)
+	match String(u.get("effect", "")):
+		"max_relics_bonus_shop":
+			pass # cap reads shop_upgrades_bought in shop_relic_cap()
+		"max_hp_shop":
+			max_hp += int(u["value"])
+			hp = min(max_hp, hp + int(u["value"]))
+		"reroll_discount":
+			permanent_reroll_discount += int(u["value"])
+	return true
+
+
+func shop_relic_cap() -> int:
+	return int(config["max_relics"]) + RelicEngine.total(self, "max_relics_bonus") + shop_upgrades_bought.count("relic_slot")

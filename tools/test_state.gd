@@ -41,8 +41,21 @@ func _grid(symbol: String) -> Array:
 
 func _test_data() -> void:
 	_check(GameData.relics.size() == 12, "12 relics load from data/relics.json")
-	_check(GameData.fights.size() == 5, "5 fights load from data/fights.json")
+	_check(GameData.fights.size() == 10, "10 fights load from data/fights.json (floors 1-2)")
 	_check(GameData.enemies.size() == 3, "3 enemy archetypes load")
+	var floors_ok := true
+	var bosses := 0
+	for f in GameData.fights:
+		if not f.has("floor") or int(f["floor"]) < 1 or int(f["floor"]) > 2:
+			floors_ok = false
+		if not f.has("hp") or not (f["intents"] is Array) or (f["intents"] as Array).size() != 3:
+			floors_ok = false
+		if not GameData.enemies.has(String(f["type"])):
+			floors_ok = false
+		if bool(f.get("boss", false)):
+			bosses += 1
+	_check(floors_ok, "every fight has floor 1-2, hp, 3 intents, valid enemy type")
+	_check(bosses == 2, "two floor bosses (floor 1 + floor 2)")
 	for relic in GameData.relics:
 		var icon_path := "res://assets/generated/" + String(relic["icon"])
 		if not FileAccess.file_exists(icon_path):
@@ -150,12 +163,12 @@ func _test_flow() -> void:
 	_check(draft.relics.size() == 1, "chosen relic enters the build")
 
 	var win := _fresh()
-	win.fight_index = 4
+	win.fight_index = 9
 	win.enemy_hp = 1
 	win.resolve(_grid("sword"))
-	_check(win.enemy_hp == 0, "the fifth enemy can be killed")
+	_check(win.enemy_hp == 0, "the tenth enemy can be killed")
 	var outcome: String = win.on_enemy_defeated()
-	_check(outcome == "victory" and win.victory, "killing fight five returns victory")
+	_check(outcome == "victory" and win.victory, "killing fight ten returns victory")
 
 	var next := _fresh()
 	next.enemy_hp = 1

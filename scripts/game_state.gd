@@ -18,6 +18,7 @@ var block: int = 0
 
 var fight_index: int = 0
 var fights_won: int = 0
+var floor: int = 1
 var enemy: Dictionary = {}
 var enemy_hp: int = 0
 var enemy_block: int = 0
@@ -46,6 +47,7 @@ func start_run(seed_value: int = 0) -> void:
 	relics = []
 	fight_index = 0
 	fights_won = 0
+	floor = 1
 	spin_count = 0
 	second_wind_used = false
 	run_over = false
@@ -61,6 +63,7 @@ func start_run(seed_value: int = 0) -> void:
 
 func _start_fight() -> void:
 	var fight: Dictionary = fights[fight_index]
+	floor = int(fight.get("floor", 1))
 	var archetype: Dictionary = enemies[String(fight["type"])]
 	enemy = {
 		"name": String(fight["name"]),
@@ -359,6 +362,7 @@ func summary() -> Dictionary:
 	return {
 		"fights_won": fights_won,
 		"fights_total": fights.size(),
+		"floor": floor,
 		"spins": int(stats.get("spins", 0)),
 		"coins": coins,
 		"relics": relics.size(),

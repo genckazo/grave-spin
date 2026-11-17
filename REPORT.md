@@ -153,3 +153,56 @@ seeds + this REPORT.md).
 - Real Windows/Linux GPU run, gamepad, human playtest: not checkable here.
 - Known reported conflict unchanged: relic split backlog 10/6/2/2 vs shipped
   14/10/3/3.
+
+## ART SWAP BUILD (Patch.gg / Kenney CC0 reel art) — commits 078fdb8 (JOB 1), 54d08e6 (JOB 2)
+
+Look-only build on top of 371903e: no gameplay, balance, or data changes.
+
+### JOB 1 — reel symbols (commit 078fdb8) — WORKS
+Symbol -> asset mapping (symbol set size, weights, payouts, paytable unchanged;
+only the pictures changed):
+
+| Symbol | Asset | Source (Patch.gg) | Raw size | Treatment |
+|---|---|---|---|---|
+| sword | Kenney pixel-platformer-food-expansion tile_0080 (candle) | https://patch.gg/create/toolbox/assets/kenney:pixel-platformer-food-expansion/tile_0080.png | 18x18 | NEAREST fit into 44px box |
+| shield | Kenney tiny-dungeon tile_0065 (tombstone) | https://patch.gg/create/toolbox/assets/kenney:tiny-dungeon/tile_0065.png | 16x16 | NEAREST x3 -> 48px |
+| potion | Kenney tiny-dungeon tile_0116 (blue flask) | https://patch.gg/create/toolbox/assets/kenney:tiny-dungeon/tile_0116.png | 16x16 | NEAREST x3 -> 48px |
+| coin | Kenney puzzle-pack-2 coin_01 | https://patch.gg/create/toolbox/assets/kenney:puzzle-pack-2/coin_01.png | 128x128 | NEAREST down to 44px box |
+| skull | Kenney mobile-controls icon_skull | https://patch.gg/create/toolbox/assets/kenney:mobile-controls/icon_skull.png | 48x48 | NEAREST fit into 44px box |
+
+All icons rebuilt at 48x48 RGBA by `tools/make_symbol_art.py`, trimmed and
+centred with consistent 2px padding; nearest-neighbour only, no blur.
+Raw sources kept in `assets/raw/patchgg/`. All assets are Kenney CC0
+(public-domain dedication) via Patch.gg; no credit legally required,
+sources listed here anyway. HUD/title reuse the same five files, so the
+whole game reads as one icon family.
+
+### JOB 2 — reel cell stone frame (commit 54d08e6) — WORKS
+- Kenney micro-roguelike tile_0097 (empty dark slot in stone frame, 128x128)
+  scaled NEAREST to the 56px cell as `assets/generated/cell_frame.png`;
+  one TextureRect per reel position (3x3) behind the scrolling strips.
+  Source: https://patch.gg/create/toolbox/assets/kenney:micro-roguelike/tile_0097.png
+- Cell-frame decision: kept the existing cabinet frame (machine_frame.png)
+  and used the stone texture only as the cell interior — the two frames
+  would fight visually.
+
+### Gates at art HEAD
+- TESTS PASS failures=0, no script errors.
+- Sim re-run at art HEAD and at base 371903e in the same environment,
+  1,000 x 5 seeds (12345/777/2024/99999/31337), both SIM PASS exit 0:
+  - normal, band 40-60: art HEAD 55.9/51.3/55.4/50.1/52.9% vs base
+    56.5/51.5/55.6/50.5/52.7% — ALL IN both runs (deltas <=0.6pp are
+    run-to-run noise; identical code re-runs differ by the same amount,
+    and this build changes no code or data path, only PNGs + one UI hunk).
+  - high_roller, band 15-35: art HEAD 29.0/28.5/27.2/30.3/27.4% vs base
+    28.9/28.7/27.6/30.1/27.8% — ALL IN both runs.
+- Autoplay reaches the end screen, 0 script errors.
+- Fresh exports: macOS build/macos/GraveSpin.app boots headless clean
+  (0 script errors, quarantine cleared) + Windows build/windows/GraveSpin.exe
+  115,678,752 bytes, PE32+ x86-64.
+
+### Not in this build (per orders)
+- No background change (drawn parallax stays), no enemy sprite changes, no
+  UI panel swap, no font change.
+- Stub-level: visuals verified via autoplay + boot only; headless --shots
+  capture hangs in this environment, so no screenshot review was possible.

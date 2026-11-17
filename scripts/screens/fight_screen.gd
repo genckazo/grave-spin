@@ -191,6 +191,14 @@ func _build_machine() -> void:
 	frame.position = Vector2(14, 34)
 	shake_root.add_child(frame)
 
+	# Stone slot interior behind every reel cell; the cabinet frame stays on top.
+	for c in range(3):
+		for r in range(3):
+			var cell := UI.texture(CELL_ASSET, CELL, CELL)
+			cell.stretch_mode = TextureRect.STRETCH_TILE
+			cell.position = Vector2(REELS_X + c * CELL, REELS_Y + r * CELL)
+			shake_root.add_child(cell)
+
 	for c in range(3):
 		var col := Control.new()
 		col.position = Vector2(REELS_X + c * CELL, REELS_Y)

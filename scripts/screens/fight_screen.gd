@@ -177,6 +177,15 @@ func _build_machine() -> void:
 	frame.position = Vector2(14, 34)
 	shake_root.add_child(frame)
 
+	# Stone slot frame behind every reel cell (Kenney Micro Roguelike
+	# tile_0097 scaled to the 56px cell). The existing cabinet frame stays;
+	# the stone texture is only the cell interior.
+	for r in range(3):
+		for c in range(3):
+			var cell := UI.texture("res://assets/generated/cell_frame.png", CELL, CELL)
+			cell.position = Vector2(REELS_X + c * CELL, REELS_Y + r * CELL)
+			shake_root.add_child(cell)
+
 	for c in range(3):
 		var col := Control.new()
 		col.position = Vector2(REELS_X + c * CELL, REELS_Y)

@@ -153,3 +153,42 @@ seeds + this REPORT.md).
 - Real Windows/Linux GPU run, gamepad, human playtest: not checkable here.
 - Known reported conflict unchanged: relic split backlog 10/6/2/2 vs shipped
   14/10/3/3.
+
+## ART SWAP build (look-only) — commits 60b0f38 (JOB 1) / 0194313 (JOB 2), HEAD 0194313
+Base: 371903e (no pressure build had landed). No gameplay, balance or data
+changes — symbol set, weights, payouts, paytable untouched.
+
+### JOB 1 — Reel symbol sprites (Kenney CC0 via Patch.gg) — WORKS — 60b0f38
+Symbol -> asset mapping (all Kenney assets, CC0 public domain, fetched from
+Patch.gg; page URLs below, files under assets/kenney/):
+
+| Symbol | Asset | Patch.gg source page |
+|---|---|---|
+| skull2 | icon_skull.png 48x48 (mobile-controls) | https://patch.gg/create/toolbox/assets/kenney:mobile-controls/icon_skull.png |
+| shield2 | tile_0065.png 16x16 Tombstone (tiny-dungeon) | https://patch.gg/create/toolbox/assets/kenney:tiny-dungeon/tile_0065.png |
+| potion2 | tile_0116.png 16x16 blue flask (tiny-dungeon) | https://patch.gg/create/toolbox/assets/kenney:tiny-dungeon/tile_0116.png |
+| coin1 | coin_01.png 128x128 (puzzle-pack-2) | https://patch.gg/create/toolbox/assets/kenney:puzzle-pack-2/coin_01.png |
+| sword3 | tile_0080.png 18x18 candle (pixel-platformer-food-expansion) | https://patch.gg/create/toolbox/assets/kenney:pixel-platformer-food-expansion/tile_0080.png |
+
+- Nearest-neighbour filtering everywhere; sprites drawn centered in each
+  56px cell via the existing 48x48 KEEP_ASPECT_CENTERED icon rects (16px
+  tiles upscale 3x whole-number to 48). One icon family (Kenney pixel sets).
+- Honest stub: the owner's asset list had no weapon sprite, so sword3 maps
+  to the candle (closest upright item in the picked set). Grave/potion
+  sibling variants were not fetched (Patch.gg rate-limits bulk pulls).
+
+### JOB 2 — Reel cell stone frame — WORKS — 0194313
+- tile_0097.png 8x8 (micro-roguelike) tiled as the cell INTERIOR behind each
+  reel strip (8px -> 56px cell = 7x whole-number, NEAREST). Decision: keep
+  the existing cabinet frame from the polish pass, use the stone texture only
+  inside the cells — full stone frames would clash with the cabinet.
+- Source: https://patch.gg/create/toolbox/assets/kenney:micro-roguelike/tile_0097.png
+
+### Gates at HEAD 0194313
+- TESTS PASS failures=0, no script errors; autoplay reaches end screen clean.
+- Sim 1,000 x 5 seeds, identical to base within run-to-run noise (art-only):
+  normal 56.3/51.4/55.7/50.5/52.5% ALL IN 40-60 SIM PASS (base 56.4/51.5/55.6/50.4/52.5);
+  high_roller 29.1/28.8/27.1/30.1/27.5% ALL IN 15-35 SIM PASS (base 29.0/28.5/27.3/30.0/27.6).
+- Fresh exports: macOS .app boots headless clean (0 log errors, quarantine
+  cleared); Windows .exe 115,678,760 B PE32+.
+- Not in this build per orders: background, enemy sprites, UI panels, fonts.

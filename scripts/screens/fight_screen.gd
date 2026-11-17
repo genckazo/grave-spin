@@ -8,6 +8,20 @@ const REELS_Y := 90
 const STRIP_ROWS := 9
 const STRIP_TRAVEL := 336.0
 
+# Reel symbol art: Kenney assets via Patch.gg (CC0). Symbol set, weights and
+# payouts in data/config.json are untouched — only the pictures change.
+const SYMBOL_ASSETS := {
+	"sword": "res://assets/kenney/tile_0080.png",   # candle (closest upright item in the picked set)
+	"shield": "res://assets/kenney/tile_0065.png",
+	"potion": "res://assets/kenney/tile_0116.png",
+	"coin": "res://assets/kenney/coin_01.png",
+	"skull": "res://assets/kenney/icon_skull.png",
+}
+# Display size per symbol; 16px tiles upscale 3x to 48, the 18px candle 2x to 36.
+const SYMBOL_SIZE := {"sword": 36, "shield": 48, "potion": 48, "coin": 48, "skull": 48}
+# Stone slot interior behind each reel cell (Kenney Micro Roguelike, CC0).
+const CELL_ASSET := "res://assets/kenney/tile_0097.png"
+
 var main
 var state: GameState
 var screen_id := "fight"
@@ -185,6 +199,18 @@ func _build_machine() -> void:
 		col.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		shake_root.add_child(col)
 
+		# Stone slot frame as the cell interior (8px tile -> 56px cell = 7x,
+		# whole-number upscale, nearest filter). Cabinet frame stays on top.
+		var cell_bg := TextureRect.new()
+		cell_bg.texture = load("res://assets/kenney/tile_0097.png")
+		cell_bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		cell_bg.stretch_mode = TextureRect.STRETCH_TILE
+		cell_bg.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		cell_bg.position = Vector2(0, 0)
+		cell_bg.size = Vector2(CELL, CELL * 3)
+		cell_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		col.add_child(cell_bg)
+
 		var strip := Control.new()
 		strip.size = Vector2(CELL, CELL * STRIP_ROWS)
 		strip.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -192,10 +218,9 @@ func _build_machine() -> void:
 
 		var icons: Array = []
 		for i in range(STRIP_ROWS):
-			var tr := UI.texture("res://assets/generated/sword_icon.png", 48, 48)
-			tr.position = Vector2(4, i * CELL + 4)
+			var tr := UI.texture(SYMBOL_ASSETS["sword"], 48, 48)
 			strip.add_child(tr)
-			tr.texture = _symbol_texture(_random_symbol())
+			_set_symbol_icon(tr, _random_symbol(), i)
 			icons.append(tr)
 
 		reels.append({"col": col, "strip": strip, "icons": icons})
@@ -703,9 +728,9 @@ func _spin_reels(grid: Array) -> void:
 		var reel: Dictionary = reels[c]
 		var icons: Array = reel["icons"]
 		for i in range(STRIP_ROWS):
-			icons[i].texture = _symbol_texture(_random_symbol())
+			_set_symbol_icon(icons[i], _random_symbol(), i)
 		for r in range(3):
-			icons[6 + r].texture = _symbol_texture(String(grid[r][c]))
+			_set_symbol_icon(icons[6 + r], String(grid[r][c]), 6 + r)
 		reel["strip"].position.y = 0.0
 
 		var delay := c * 0.07
@@ -745,9 +770,9 @@ func _set_strip_final(c: int, grid: Array) -> void:
 	var reel: Dictionary = reels[c]
 	var icons: Array = reel["icons"]
 	for i in range(STRIP_ROWS):
-		icons[i].texture = _symbol_texture(_random_symbol())
+		_set_symbol_icon(icons[i], _random_symbol(), i)
 	for r in range(3):
-		icons[r].texture = _symbol_texture(String(grid[r][c]))
+		_set_symbol_icon(icons[r], String(grid[r][c]), r)
 	reel["strip"].position.y = 0.0
 
 
@@ -1100,10 +1125,16 @@ func _dust_puff(pos: Vector2) -> void:
 	get_tree().create_timer(0.8).timeout.connect(p.queue_free)
 
 
+func _set_symbol_icon(tr: TextureRect, symbol: String, row: int) -> void:
+	tr.texture = _symbol_texture(symbol)
+	var s: int = int(SYMBOL_SIZE.get(symbol, 48))
+	tr.size = Vector2(s, s)
+	tr.position = Vector2((CELL - s) * 0.5, row * CELL + (CELL - s) * 0.5)
+
 func _symbol_texture(symbol: String) -> Texture2D:
 	if _symbol_tex.has(symbol):
 		return _symbol_tex[symbol]
-	var tex: Texture2D = load("res://assets/generated/%s_icon.png" % symbol)
+	var tex: Texture2D = load(String(SYMBOL_ASSETS.get(symbol, SYMBOL_ASSETS["skull"])))
 	_symbol_tex[symbol] = tex
 	return tex
 
